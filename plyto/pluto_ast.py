@@ -1,8 +1,7 @@
-import enum
 from dataclasses import dataclass
 import typing
 
-from . import uplc_ast
+from uplc import uplc_ast
 
 
 class AST:
