@@ -150,6 +150,14 @@ class Unit(AST):
     def dumps(self) -> str:
         return "()"
 
+@dataclass
+class NoneData(AST):
+    def compile(self):
+        return uplc_ast.Constant(uplc_ast.ConstantType.unit, "()")
+
+    def dumps(self) -> str:
+        return "()"
+
 
 @dataclass
 class BuiltIn(AST):
@@ -314,33 +322,27 @@ def from_primitive(p: AST, attributes: AST):
 def to_primitive(wv: WrappedValue):
     return Apply(wv, TOPRIMITIVEVALUE, Unit())
 
+def wrap_builtin_binop(b: uplc_ast.BuiltInFun):
+    def wrapped(x: AST, y: AST):
+        return Apply(b, x, y)
+    return wrapped
 
-def EqualsInteger(a: AST, b: AST):
-    return Apply(uplc_ast.BuiltInFun.EqualsInteger, a, b)
 
+EqualsInteger = wrap_builtin_binop(uplc_ast.BuiltInFun.EqualsInteger)
+LessThanInteger = wrap_builtin_binop(uplc_ast.BuiltInFun.LessThanInteger)
+LessThanEqualsInteger = wrap_builtin_binop(uplc_ast.BuiltInFun.LessThanEqualsInteger)
+AddInteger = wrap_builtin_binop(uplc_ast.BuiltInFun.AddInteger)
+SubtractInteger = wrap_builtin_binop(uplc_ast.BuiltInFun.SubtractInteger)
+MultiplyInteger = wrap_builtin_binop(uplc_ast.BuiltInFun.MultiplyInteger)
+ModInteger = wrap_builtin_binop(uplc_ast.BuiltInFun.ModInteger)
+DivideInteger = wrap_builtin_binop(uplc_ast.BuiltInFun.DivideInteger)
+EqualsByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.EqualsByteString)
+AppendByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.AppendByteString)
+LessThanEqualsByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.LessThanEqualsByteString)
+LessThanByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.LessThanByteString)
 
 def NotEqualsInteger(a: AST, b: AST):
     return Not(EqualsInteger(a, b))
-
-
-def LessThanInteger(a: AST, b: AST):
-    return Apply(uplc_ast.BuiltInFun.LessThanInteger, a, b)
-
-
-def LessThanEqualsInteger(a: AST, b: AST):
-    return Apply(uplc_ast.BuiltInFun.LessThanEqualsInteger, a, b)
-
-
-def AddInteger(a: AST, b: AST):
-    return Apply(uplc_ast.BuiltInFun.AddInteger, a, b)
-
-
-def SubtractInteger(a: AST, b: AST):
-    return Apply(uplc_ast.BuiltInFun.SubtractInteger, a, b)
-
-
-def EqualsBytestring(a: AST, b: AST):
-    return Apply(uplc_ast.BuiltInFun.EqualsByteString, a, b)
 
 
 EqualsBool = Iff
