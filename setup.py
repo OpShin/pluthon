@@ -24,7 +24,7 @@ setup(
     url=plyto.__url__,
     py_modules=["uplc"],
     packages=find_packages(),
-    install_requires=["frozendict"],
+    install_requires=["uplc"],
     long_description=long_description,
     long_description_content_type="text/markdown",
     license=plyto.__license__,
