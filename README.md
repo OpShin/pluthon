@@ -1,5 +1,5 @@
-Plyto
------
+Pluthon
+-------
 
 Pluto-like programming language for Cardano Smart Contracts in Python
 

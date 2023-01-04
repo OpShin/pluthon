@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
-import plyto
+import pluthon
 
 here = path.abspath(path.dirname(__file__))
 
@@ -16,18 +16,18 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name="plyto",
-    version=plyto.__version__,
-    description="Python implementation of untyped plutus language core",
-    author=plyto.__author__,
-    author_email=plyto.__author_email__,
-    url=plyto.__url__,
+    name="pluthon",
+    version=pluthon.__version__,
+    description="Pluto-like programming language for Cardano Smart Contracts in Python",
+    author=pluthon.__author__,
+    author_email=pluthon.__author_email__,
+    url=pluthon.__url__,
     py_modules=["uplc"],
     packages=find_packages(),
     install_requires=["uplc"],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    license=plyto.__license__,
+    license=pluthon.__license__,
     classifiers=[
         "Development Status :: 3 - Alpha",
         # Indicate who your project is intended for

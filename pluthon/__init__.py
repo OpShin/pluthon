@@ -4,7 +4,7 @@
 import warnings
 
 try:
-    from .pluto_ast import *
+    from .pluthon_ast import *
 except ImportError as e:
     warnings.warn(ImportWarning(e))
 
