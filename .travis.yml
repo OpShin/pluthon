@@ -1,37 +1,31 @@
 language: python
-
 python:
-  - "3.8"
-  - "3.9"
-  - "3.10"
+- '3.8'
+- '3.9'
+- '3.10'
 dist: bionic
 sudo: true
-
 matrix:
   fast_finish: true
-
 install:
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then pip install -U importlib_metadata; fi
-  - pip install coverage coveralls
-  - pip install black
-  - pip install -e .
-
+- if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then pip install -U importlib_metadata;
+  fi
+- pip install coverage coveralls
+- pip install black
+- pip install -e .
 script:
-  - black --check .
-  - coverage run --source=uplc setup.py test
-
+- black --check .
+- coverage run --source=uplc setup.py test
 after_success:
-  - coverage report
-  - coveralls
-
+- coverage report
+- coveralls
 deploy:
   provider: pypi
   on:
     branch: master
-    python: "3.10"
-  distributions: "sdist bdist_wheel"
+    python: '3.10'
+  distributions: sdist bdist_wheel
   skip_existing: true
-  username: "nielstron"
+  username: nielstron
   password:
-    secure: "vTQIPd5alinVvM6/XI+5hbnFXigwkWqbebubsze4Ca7lKW+Vqy8DMGWvDKKSobjtANIDSQGJhOHM3pi6BOv79wBU2SRq1lIKTXFhiH/uUiGLSlRY8PEbL1b4OeGpS8N4ijGSJ+cIRrVmI4aGSuE/9J6pwe/vIeA1p4MbCyHghCZnXH9iuOv9QlaprU0xQDa9clpdzIZiDeFEu+orHGXs2tG4z3+mxOR0glugdupKNLLxm9+SAZSXkUcpTqXGIfjfUvkx235gtfgbOcTzKWH5QK+tPmR84U8WWvEdytBkmivfFrBHmpAgVdqeUmi3EAYVrb6Jbpw8D7HxJJiJBLIFsin6HgeTF2bEQyrBUuyb74rhb+FxWE3P6vZx89M787DaABYq7jHzJNkB1eiJVzMAoRzcGsx5uI4A1XZsIFHn0f3L++ihfukixCeBX0p7DVtsfHVMu8VmJ9p3FusBILFUiWU7vIhbJnIz26z5G5mKMOBKKjXp29L1SeAztFYhvKORXvyiuhXON5itIoMdP+cHFr5TDULEJNA8YgiQgvGSCmbwBgSreBkExuN87MeU0pL8sAX7zbYs6WgPpHSbem7KSiPWcEjOdYbgZLwl+NfQlsyxek1UoBv2K63VJrXa5UzrLx7T1z96ZUkb5dT9trFaat4kNOk//T0yT/lmWeavJQo="
-
+    secure: 02UfNEMcq0vTFDim9vVF9Y6XQsSN42X6S8Odw6UEij2KpQBDHA79cSeM+wed72LQbgCwktylWi1JxkJg6/GJCsb9ao3BPhPNewoArnBgDUF5ox2ESvbJdV0T5+K1LntL7tPifcpoHeh25EWo3J50T+aT1dsIql0rs6USCNBmtgHkUr28ZnVkK+hxb/U4WoxdqkgE9i2F9YuMaidJHjZVYIPrEnQD69tpSmKuOag1WgOSJOsw60HPomNpDHP6cCOkBIKSAA0h2McmrBjTnX/5655sOzDFFv4JKIznbbNpMMIEk9jOSgHLcwGBy/usHvwqdzEBOWTcgcYXe6r9RqG5FVbYxUJzgW2osGn93FFWjra7+h2eEatPoQsF6jbh7U+WXSiiWNn3ErvyjXU7PwxRaUmst5g2TMIrsNMzhpMtPKQMQFdDOKQ3WlqI4lCIpJ/5RfVbpKdVDzk/2aZqV9qKxUYCZRl8DHZf9mEpCNeAvxgZggVvNkNVF4OqA/WFyvVhja/wVJgme9dZJ+xuX0kigZpgvlG+6sNvqLsEdvZXLntYPJjeoXgEWAU9ItC5tJXB9IZpMfilbDRSu8PMJJUmuqsrHIa2OZyXkpJqyXHA8T5w/LA9venLk9cY8NlXyy08ZqO9mkg4EWuYfn2spxoOIymj6eQZODz2wlQC7yZo0mU=
