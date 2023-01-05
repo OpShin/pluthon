@@ -11,6 +11,9 @@ class AST:
     def dumps(self) -> str:
         raise NotImplementedError()
 
+    def eval(self) -> str:
+        return self.compile().eval()
+
 
 @dataclass
 class Program(AST):
