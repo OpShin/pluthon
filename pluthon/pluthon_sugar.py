@@ -4,6 +4,13 @@ from .pluthon_ast import *
 ########## Pluto Abstractions that simplify handling complex structures ####################
 
 
+def RecFun(x: AST):
+    return Let(
+        [("g", x)],
+        Apply(Var("g"), Var("g")),
+    )
+
+
 def Not(x: AST):
     return Ite(x, Bool(False), Bool(True))
 
@@ -163,35 +170,55 @@ def SingleList(x: AST):
 
 
 def IndexAccessList(l: AST, i: AST):
-    return Let(
-        [
-            (
-                "g",
-                Lambda(
-                    ["i", "xs", "f"],
+    return Apply(
+        RecFun(
+            Lambda(
+                ["f", "i", "xs"],
+                Ite(
+                    NullList(Var("xs")),
+                    TraceConst("IndexError", Error()),
                     Ite(
-                        NullList(Var("xs")),
-                        TraceConst("IndexError", Error()),
-                        Ite(
-                            EqualsInteger(Var("i"), Integer(0)),
-                            HeadList(Var("xs")),
-                            Apply(
-                                Var("f"),
-                                SubtractInteger(Var("i"), Integer(1)),
-                                TailList(Var("xs")),
-                                Var("f"),
-                            ),
+                        EqualsInteger(Var("i"), Integer(0)),
+                        HeadList(Var("xs")),
+                        Apply(
+                            Var("f"),
+                            Var("f"),
+                            SubtractInteger(Var("i"), Integer(1)),
+                            TailList(Var("xs")),
                         ),
                     ),
                 ),
-            )
-        ],
-        Apply(
-            Var("g"),
-            l,
-            i,
-            Var("g"),
+            ),
         ),
+        i,
+        l,
+    )
+
+
+def Range(limit: AST, start: AST = Integer(0), step: AST = Integer(1)):
+    return Apply(
+        RecFun(
+            Lambda(
+                ["f", "cur", "limit", "step"],
+                Ite(
+                    LessThanInteger(Var("cur"), Var("limit")),
+                    PrependList(
+                        Var("cur"),
+                        Apply(
+                            Var("f"),
+                            Var("f"),
+                            AddInteger(Var("cur"), Var("step")),
+                            Var("limit"),
+                            Var("step"),
+                        ),
+                    ),
+                    EmptyList(),
+                ),
+            )
+        ),
+        start,
+        limit,
+        step,
     )
 
 
