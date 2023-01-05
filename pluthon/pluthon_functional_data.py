@@ -1,4 +1,4 @@
-from pluthon_sugar import *
+from .pluthon_sugar import *
 import typing
 
 """

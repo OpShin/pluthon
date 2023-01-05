@@ -1,5 +1,5 @@
 from uplc import uplc_ast
-from pluthon_ast import *
+from .pluthon_ast import *
 
 ########## Pluto Abstractions that simplify handling complex structures ####################
 

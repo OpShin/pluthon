@@ -6,6 +6,7 @@ import warnings
 try:
     from .pluthon_ast import *
     from .pluthon_sugar import *
+    from .pluthon_functional_data import *
 except ImportError as e:
     warnings.warn(ImportWarning(e))
 
