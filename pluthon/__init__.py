@@ -5,10 +5,11 @@ import warnings
 
 try:
     from .pluthon_ast import *
+    from .pluthon_sugar import *
 except ImportError as e:
     warnings.warn(ImportWarning(e))
 
-VERSION = (0, 0, 1)
+VERSION = (0, 0, 2)
 
 __version__ = ".".join([str(i) for i in VERSION])
 __author__ = "nielstron"
