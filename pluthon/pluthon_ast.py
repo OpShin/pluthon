@@ -153,14 +153,6 @@ class Unit(AST):
     def dumps(self) -> str:
         return "()"
 
-@dataclass
-class NoneData(AST):
-    def compile(self):
-        return uplc_ast.Constant(uplc_ast.ConstantType.unit, "()")
-
-    def dumps(self) -> str:
-        return "()"
-
 
 @dataclass
 class BuiltIn(AST):
@@ -229,5 +221,3 @@ class Ite(AST):
 
     def dumps(self) -> str:
         return f"(if {self.i.dumps()} then {self.t.dumps()} else {self.e.dumps()})"
-
-

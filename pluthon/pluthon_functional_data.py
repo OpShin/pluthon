@@ -20,10 +20,11 @@ _EQUALS_MAP = {
     Bool: EqualsBool,
 }
 
+
 def FunctionalMapExtend(
-        old_statemonad: "FunctionalMap",
-        names: typing.List[typing.Any],
-        values: typing.List[AST],
+    old_statemonad: "FunctionalMap",
+    names: typing.List[typing.Any],
+    values: typing.List[AST],
 ) -> "FunctionalMap":
     additional_compares = Apply(
         old_statemonad,
@@ -47,12 +48,13 @@ class FunctionalMap(AST):
     # low level maps that only support equal type keys
     # but can store anything
     def __new__(
-            cls, kv: typing.Optional[typing.Dict[typing.Any, AST]] = None
+        cls, kv: typing.Optional[typing.Dict[typing.Any, AST]] = None
     ) -> "FunctionalMap":
         res = Lambda(["x", "def"], Var("def"))
         if kv is not None:
             res = FunctionalMapExtend(res, kv.keys(), kv.values())
         return res
+
 
 def FunctionalMapAccess(m: AST, k: AST, default=Trace(Text("KeyError"), Error())):
     return Apply(m, k, default)

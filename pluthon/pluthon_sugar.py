@@ -12,50 +12,66 @@ def Iff(x: AST, y: AST):
     return Ite(x, y, Not(y))
 
 
-
 def wrap_builtin_binop(b: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST):
         return Apply(b, x, y)
+
     return wrapped
+
 
 def wrap_builtin_binop_force(b: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST):
         return Apply(Force(b), x, y)
+
     return wrapped
+
 
 def wrap_builtin_binop_force_force(b: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST):
         return Apply(Force(Force(b)), x, y)
+
     return wrapped
+
 
 def wrap_builtin_ternop(t: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST, z: AST):
         return Apply(t, x, y, z)
+
     return wrapped
+
 
 def wrap_builtin_ternop_force_force(t: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST, z: AST):
         return Apply(Force(Force(t)), x, y, z)
+
     return wrapped
+
 
 def wrap_builtin_unop(u: uplc_ast.BuiltInFun):
     def wrapped(x: AST):
         return Apply(u, x)
+
     return wrapped
+
 
 def wrap_builtin_unop_force(u: uplc_ast.BuiltInFun):
     def wrapped(x: AST):
         return Apply(Force(u), x)
+
     return wrapped
+
 
 def wrap_builtin_unop_force_force(u: uplc_ast.BuiltInFun):
     def wrapped(x: AST):
         return Apply(Force(Force(u)), x)
+
     return wrapped
+
 
 def wrap_builtin_hexop_force(u: uplc_ast.BuiltInFun):
     def wrapped(d: AST, v: AST, w: AST, x: AST, y: AST, z: AST):
         return Apply(Force(u), d, v, w, x, y, z)
+
     return wrapped
 
 
@@ -76,7 +92,9 @@ LengthOfByteString = wrap_builtin_unop(uplc_ast.BuiltInFun.LengthOfByteString)
 IndexByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.IndexByteString)
 EqualsByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.EqualsByteString)
 LessThanByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.LessThanByteString)
-LessThanEqualsByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.LessThanEqualsByteString)
+LessThanEqualsByteString = wrap_builtin_binop(
+    uplc_ast.BuiltInFun.LessThanEqualsByteString
+)
 Sha2_256 = wrap_builtin_unop(uplc_ast.BuiltInFun.Sha2_256)
 Sha3_256 = wrap_builtin_unop(uplc_ast.BuiltInFun.Sha3_256)
 Blake2b_256 = wrap_builtin_unop(uplc_ast.BuiltInFun.Blake2b_256)
@@ -116,6 +134,7 @@ MkNilPairData = wrap_builtin_unop(uplc_ast.BuiltInFun.MkNilPairData)
 
 TraceConst = lambda x, y: Trace(Text(x), y)
 
+
 def NotEqualsInteger(a: AST, b: AST):
     return Not(EqualsInteger(a, b))
 
@@ -124,16 +143,24 @@ EqualsBool = Iff
 
 # List Utils
 
+
 def EmptyList():
     # Create an empty list
     return Apply(MkNilData, Unit())
+
 
 def EmptyPairList():
     # Create an empty list of pair type
     return Apply(MkNilPairData, Unit())
 
+
 # Prepend an element to a list
 PrependList = MkCons
+
+
+def SingleList(x: AST):
+    return PrependList(x, EmptyList())
+
 
 def IndexAccessList(l: AST, i: AST):
     return Let(
@@ -146,10 +173,7 @@ def IndexAccessList(l: AST, i: AST):
                         NullList(Var("xs")),
                         TraceConst("IndexError", Error()),
                         Ite(
-                            EqualsInteger(
-                                Var("i"),
-                                Integer(0)
-                            ),
+                            EqualsInteger(Var("i"), Integer(0)),
                             HeadList(Var("xs")),
                             Apply(
                                 Var("f"),
@@ -173,11 +197,13 @@ def IndexAccessList(l: AST, i: AST):
 
 # Data Utils
 
+
 def Constructor(d: AST):
     return Apply(
         Force(Force(BuiltIn(uplc_ast.BuiltInFun.FstPair))),
         Apply(BuiltIn(uplc_ast.BuiltInFun.UnConstrData), d),
     )
+
 
 def Fields(d: AST):
     return Apply(
@@ -185,6 +211,15 @@ def Fields(d: AST):
         Apply(BuiltIn(uplc_ast.BuiltInFun.UnConstrData), d),
     )
 
+
 def NthField(d: AST, n: AST):
     return IndexAccessList(Fields(d), n)
 
+
+def NoneData():
+    return ConstrData(Integer(0), EmptyList())
+
+
+def SomeData(x: AST):
+    # Note: x must be of type data!
+    return ConstrData(Integer(1), SingleList(x))
