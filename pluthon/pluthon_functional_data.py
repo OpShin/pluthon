@@ -1,5 +1,5 @@
-from .pluthon_sugar import *
 import typing
+from pluthon_sugar import *
 
 """
 Functional Data Structures that can store anything (as opposed to PlutusData derivatives)

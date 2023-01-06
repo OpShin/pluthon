@@ -1,4 +1,3 @@
-from uplc import uplc_ast
 from .pluthon_ast import *
 
 ########## Pluto Abstractions that simplify handling complex structures ####################
@@ -21,63 +20,63 @@ def Iff(x: AST, y: AST):
 
 def wrap_builtin_binop(b: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST):
-        return Apply(b, x, y)
+        return Apply(BuiltIn(b), x, y)
 
     return wrapped
 
 
 def wrap_builtin_binop_force(b: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST):
-        return Apply(Force(b), x, y)
+        return Apply(Force(BuiltIn(b)), x, y)
 
     return wrapped
 
 
 def wrap_builtin_binop_force_force(b: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST):
-        return Apply(Force(Force(b)), x, y)
+        return Apply(Force(Force(BuiltIn(b))), x, y)
 
     return wrapped
 
 
 def wrap_builtin_ternop(t: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST, z: AST):
-        return Apply(t, x, y, z)
+        return Apply(BuiltIn(t), x, y, z)
 
     return wrapped
 
 
 def wrap_builtin_ternop_force_force(t: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST, z: AST):
-        return Apply(Force(Force(t)), x, y, z)
+        return Apply(Force(Force(BuiltIn(t))), x, y, z)
 
     return wrapped
 
 
 def wrap_builtin_unop(u: uplc_ast.BuiltInFun):
     def wrapped(x: AST):
-        return Apply(u, x)
+        return Apply(BuiltIn(u), x)
 
     return wrapped
 
 
 def wrap_builtin_unop_force(u: uplc_ast.BuiltInFun):
     def wrapped(x: AST):
-        return Apply(Force(u), x)
+        return Apply(Force(BuiltIn(u)), x)
 
     return wrapped
 
 
 def wrap_builtin_unop_force_force(u: uplc_ast.BuiltInFun):
     def wrapped(x: AST):
-        return Apply(Force(Force(u)), x)
+        return Apply(Force(Force(BuiltIn(u))), x)
 
     return wrapped
 
 
 def wrap_builtin_hexop_force(u: uplc_ast.BuiltInFun):
     def wrapped(d: AST, v: AST, w: AST, x: AST, y: AST, z: AST):
-        return Apply(Force(u), d, v, w, x, y, z)
+        return Apply(Force(BuiltIn(u)), d, v, w, x, y, z)
 
     return wrapped
 

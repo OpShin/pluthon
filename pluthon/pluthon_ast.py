@@ -12,7 +12,7 @@ class AST:
         raise NotImplementedError()
 
     def eval(self) -> str:
-        return self.compile().eval()
+        return self.compile().eval({})
 
 
 @dataclass
