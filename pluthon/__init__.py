@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import warnings
+import logging
 
 try:
     from .pluthon_ast import *
     from .pluthon_sugar import *
     from .pluthon_functional_data import *
 except ImportError as e:
-    warnings.warn(ImportWarning(e))
+    logging.error(
+        "Error, trying to import dependencies. Should only occur upon package installation",
+        exc_info=e,
+    )
 
-VERSION = (0, 1, 2)
+VERSION = (0, 1, 3)
 
 __version__ = ".".join([str(i) for i in VERSION])
 __author__ = "nielstron"
