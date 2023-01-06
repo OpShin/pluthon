@@ -152,12 +152,12 @@ EqualsBool = Iff
 
 def EmptyList():
     # Create an empty list
-    return Apply(MkNilData, Unit())
+    return MkNilData(Unit())
 
 
 def EmptyPairList():
     # Create an empty list of pair type
-    return Apply(MkNilPairData, Unit())
+    return MkNilPairData(Unit())
 
 
 # Prepend an element to a list
@@ -166,6 +166,10 @@ PrependList = MkCons
 
 def SingleList(x: AST):
     return PrependList(x, EmptyList())
+
+
+def SinglePairList(x: AST):
+    return PrependList(x, EmptyPairList())
 
 
 def IndexAccessList(l: AST, i: AST):
