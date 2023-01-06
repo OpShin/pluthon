@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import typing
 
+import frozendict
 from uplc import uplc_ast
 
 
@@ -12,7 +13,7 @@ class AST:
         raise NotImplementedError()
 
     def eval(self) -> str:
-        return self.compile().eval({})
+        return self.compile().eval(frozendict.frozendict())
 
 
 @dataclass
@@ -62,7 +63,7 @@ class Apply(AST):
     f: AST
     xs: typing.List[AST]
 
-    def __init__(self, f, *xs) -> None:
+    def __init__(self, f: AST, *xs: AST) -> None:
         super().__init__()
         self.f = f
         self.xs = xs
@@ -104,7 +105,7 @@ class Integer(AST):
     x: int
 
     def compile(self):
-        return uplc_ast.Constant(uplc_ast.ConstantType.integer, str(self.x))
+        return uplc_ast.Constant(uplc_ast.ConstantType.integer, self.x)
 
     def dumps(self) -> str:
         return str(self.x)
@@ -115,7 +116,7 @@ class ByteString(AST):
     x: bytes
 
     def compile(self):
-        return uplc_ast.Constant(uplc_ast.ConstantType.bytestring, f"#{self.x.hex()}")
+        return uplc_ast.Constant(uplc_ast.ConstantType.bytestring, self.x)
 
     def dumps(self) -> str:
         return f"0x{self.x.hex()}"
@@ -126,7 +127,7 @@ class Text(AST):
     x: str
 
     def compile(self):
-        return uplc_ast.Constant(uplc_ast.ConstantType.string, f'"{self.x}"')
+        return uplc_ast.Constant(uplc_ast.ConstantType.string, self.x)
 
     def dumps(self) -> str:
         return f'"{self.x}"'
@@ -137,9 +138,7 @@ class Bool(AST):
     x: bool
 
     def compile(self):
-        return uplc_ast.Constant(
-            uplc_ast.ConstantType.bool, "True" if self.x else "False"
-        )
+        return uplc_ast.Constant(uplc_ast.ConstantType.bool, self.x)
 
     def dumps(self) -> str:
         return "True" if self.x else "False"
@@ -148,7 +147,7 @@ class Bool(AST):
 @dataclass
 class Unit(AST):
     def compile(self):
-        return uplc_ast.Constant(uplc_ast.ConstantType.unit, "()")
+        return uplc_ast.Constant(uplc_ast.ConstantType.unit, ())
 
     def dumps(self) -> str:
         return "()"
@@ -168,10 +167,11 @@ class BuiltIn(AST):
 @dataclass
 class Error(AST):
     def compile(self):
-        return uplc_ast.Error()
+        # Wrap error such that it is never really executed
+        return uplc_ast.Lambda("_", uplc_ast.Error())
 
     def dumps(self) -> str:
-        return "(Error ())"
+        return "Error"
 
 
 @dataclass

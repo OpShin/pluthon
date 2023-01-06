@@ -6,12 +6,13 @@ Functional Data Structures that can store anything (as opposed to PlutusData der
 
 Built on wrapped lambda terms
 """
+identity = lambda x: x
 
 _BUILTIN_TYPE_MAP = {
-    bytes: (ByteString, id),
+    bytes: (ByteString, identity),
     str: (ByteString, lambda x: x.encode()),
-    int: (Integer, id),
-    bool: (Bool, id),
+    int: (Integer, identity),
+    bool: (Bool, identity),
 }
 
 _EQUALS_MAP = {
@@ -35,7 +36,7 @@ def FunctionalMapExtend(
         keytype, transform = _BUILTIN_TYPE_MAP[type(name)]
         additional_compares = Ite(
             _EQUALS_MAP[keytype](Var("x"), keytype(transform(name))),
-            value,
+            Delay(value),
             additional_compares,
         )
     return Lambda(
@@ -56,8 +57,8 @@ class FunctionalMap(AST):
         return res
 
 
-def FunctionalMapAccess(m: AST, k: AST, default=Trace(Text("KeyError"), Error())):
-    return Apply(m, k, default)
+def FunctionalMapAccess(m: AST, k: AST, default=TraceError("KeyError")):
+    return Force(Apply(m, k, Delay(default)))
 
 
 TOPRIMITIVEVALUE = b"0"

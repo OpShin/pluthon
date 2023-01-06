@@ -46,6 +46,13 @@ def wrap_builtin_ternop(t: uplc_ast.BuiltInFun):
     return wrapped
 
 
+def wrap_builtin_ternop_force(t: uplc_ast.BuiltInFun):
+    def wrapped(x: AST, y: AST, z: AST):
+        return Apply(Force(BuiltIn(t)), x, y, z)
+
+    return wrapped
+
+
 def wrap_builtin_ternop_force_force(t: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST, z: AST):
         return Apply(Force(Force(BuiltIn(t))), x, y, z)
@@ -110,7 +117,7 @@ EqualsString = wrap_builtin_binop(uplc_ast.BuiltInFun.EqualsString)
 EncodeUtf8 = wrap_builtin_unop(uplc_ast.BuiltInFun.EncodeUtf8)
 DecodeUtf8 = wrap_builtin_unop(uplc_ast.BuiltInFun.DecodeUtf8)
 # Note: prefer using Ite
-IfThenElse = wrap_builtin_unop_force(uplc_ast.BuiltInFun.IfThenElse)
+IfThenElse = wrap_builtin_ternop_force(uplc_ast.BuiltInFun.IfThenElse)
 ChooseUnit = wrap_builtin_unop_force(uplc_ast.BuiltInFun.ChooseUnit)
 Trace = wrap_builtin_binop_force(uplc_ast.BuiltInFun.Trace)
 FstPair = wrap_builtin_unop_force_force(uplc_ast.BuiltInFun.FstPair)
@@ -139,6 +146,7 @@ MkNilPairData = wrap_builtin_unop(uplc_ast.BuiltInFun.MkNilPairData)
 # Generic Utils
 
 TraceConst = lambda x, y: Trace(Text(x), y)
+TraceError = lambda x: Apply(Error(), Trace(Text(x), Unit()))
 
 
 def NotEqualsInteger(a: AST, b: AST):
@@ -179,7 +187,7 @@ def IndexAccessList(l: AST, i: AST):
                 ["f", "i", "xs"],
                 Ite(
                     NullList(Var("xs")),
-                    TraceConst("IndexError", Error()),
+                    TraceError("IndexError"),
                     Ite(
                         EqualsInteger(Var("i"), Integer(0)),
                         HeadList(Var("xs")),
