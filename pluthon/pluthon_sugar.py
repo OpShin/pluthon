@@ -265,17 +265,11 @@ def Range(limit: AST, start: AST = Integer(0), step: AST = Integer(1)):
 
 
 def Constructor(d: AST):
-    return Apply(
-        Force(Force(BuiltIn(uplc_ast.BuiltInFun.FstPair))),
-        Apply(BuiltIn(uplc_ast.BuiltInFun.UnConstrData), d),
-    )
+    return FstPair(UnConstrData(d))
 
 
 def Fields(d: AST):
-    return Apply(
-        Force(Force(BuiltIn(uplc_ast.BuiltInFun.SndPair))),
-        Apply(BuiltIn(uplc_ast.BuiltInFun.UnConstrData), d),
-    )
+    return SndPair(UnConstrData(d))
 
 
 def NthField(d: AST, n: AST):
