@@ -180,6 +180,33 @@ def SinglePairList(x: AST):
     return PrependList(x, EmptyPairList())
 
 
+def FoldList(l: AST, f: AST, a: AST):
+    """Left fold over a list l operator f: accumulator -> list_elem -> accumulator with initial value a"""
+    return Apply(
+        Lambda(
+            ["op"],
+            RecFun(
+                Lambda(
+                    ["fold", "xs", "a"],
+                    Ite(
+                        NullList(Var("xs")),
+                        Var("a"),
+                        Apply(
+                            Var("fold"),
+                            Var("fold"),
+                            TailList(Var("xs")),
+                            Apply(Var("op"), Var("a"), HeadList(Var("xs"))),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        f,
+        l,
+        a,
+    )
+
+
 def IndexAccessList(l: AST, i: AST):
     return Apply(
         RecFun(
@@ -208,28 +235,29 @@ def IndexAccessList(l: AST, i: AST):
 
 def Range(limit: AST, start: AST = Integer(0), step: AST = Integer(1)):
     return Apply(
-        RecFun(
-            Lambda(
-                ["f", "cur", "limit", "step"],
-                Ite(
-                    LessThanInteger(Var("cur"), Var("limit")),
-                    PrependList(
-                        Var("cur"),
-                        Apply(
-                            Var("f"),
-                            Var("f"),
-                            AddInteger(Var("cur"), Var("step")),
-                            Var("limit"),
-                            Var("step"),
+        Lambda(
+            ["limit", "step"],
+            RecFun(
+                Lambda(
+                    ["f", "cur"],
+                    Ite(
+                        LessThanInteger(Var("cur"), Var("limit")),
+                        PrependList(
+                            Var("cur"),
+                            Apply(
+                                Var("f"),
+                                Var("f"),
+                                AddInteger(Var("cur"), Var("step")),
+                            ),
                         ),
+                        EmptyList(),
                     ),
-                    EmptyList(),
-                ),
-            )
+                )
+            ),
         ),
-        start,
         limit,
         step,
+        start,
     )
 
 
