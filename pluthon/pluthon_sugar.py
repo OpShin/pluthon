@@ -261,6 +261,34 @@ def Range(limit: AST, start: AST = Integer(0), step: AST = Integer(1)):
     )
 
 
+def MapList(l: AST, m: AST = Lambda(["x"], Var("x"))):
+    """Apply a map function on each element in a list"""
+    return Apply(
+        Lambda(
+            ["op"],
+            RecFun(
+                Lambda(
+                    ["map", "xs"],
+                    Ite(
+                        NullList(Var("xs")),
+                        EmptyList(),
+                        PrependList(
+                            Apply(Var("op"), HeadList(Var("xs"))),
+                            Apply(
+                                Var("map"),
+                                Var("map"),
+                                TailList(Var("xs")),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        m,
+        l,
+    )
+
+
 # Data Utils
 
 
