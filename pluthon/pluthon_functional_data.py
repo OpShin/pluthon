@@ -84,11 +84,13 @@ class FunctionalTuple(AST):
         if not vs:
             return Unit()
         param = Var("__f__")
-        return Lambda([param.name], Apply(param, *vs))
+        return Lambda([param.name], Apply(param, *map(Delay, vs)))
 
 
 class FunctionalTupleAccess(AST):
     def __new__(cls, tuple: AST, index: int, size: int):
         if size == 0:
             raise ValueError("Can not access elements of an empty tuple")
-        return Apply(tuple, Lambda([f"v{i}" for i in range(size)], Var(f"v{index}")))
+        return Apply(
+            tuple, Lambda([f"v{i}" for i in range(size)], Force(Var(f"v{index}")))
+        )
