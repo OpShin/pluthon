@@ -158,12 +158,57 @@ EqualsBool = Iff
 # List Utils
 
 
-def EmptyList():
+class EmptyIntegerList(AST):
+    def compile(self) -> uplc_ast.AST:
+        return uplc_ast.BuiltinList([], uplc_ast.BuiltinInteger(0))
+
+    def dumps(self) -> str:
+        # Note: this is not a real builtin. Essentially, this is not pluto
+        return "MkNilInteger ()"
+
+
+class EmptyByteStringList(AST):
+    def compile(self) -> uplc_ast.AST:
+        return uplc_ast.BuiltinList([], uplc_ast.BuiltinByteString(b""))
+
+    def dumps(self) -> str:
+        # Note: this is not a real builtin. Essentially, this is not pluto
+        return "MkNilByteString ()"
+
+
+class EmptyTextList(AST):
+    def compile(self) -> uplc_ast.AST:
+        return uplc_ast.BuiltinList([], uplc_ast.BuiltinText(""))
+
+    def dumps(self) -> str:
+        # Note: this is not a real builtin. Essentially, this is not pluto
+        return "MkNilText ()"
+
+
+class EmptyBoolList(AST):
+    def compile(self) -> uplc_ast.AST:
+        return uplc_ast.BuiltinList([], uplc_ast.BuiltinBool(False))
+
+    def dumps(self) -> str:
+        # Note: this is not a real builtin. Essentially, this is not pluto
+        return "MkNilBool ()"
+
+
+class EmptyUnitList(AST):
+    def compile(self) -> uplc_ast.AST:
+        return uplc_ast.BuiltinList([], uplc_ast.BuiltinUnit())
+
+    def dumps(self) -> str:
+        # Note: this is not a real builtin. Essentially, this is not pluto
+        return "MkNilUnit ()"
+
+
+def EmptyDataList():
     # Create an empty list
     return MkNilData(Unit())
 
 
-def EmptyPairList():
+def EmptyDataPairList():
     # Create an empty list of pair type
     return MkNilPairData(Unit())
 
@@ -172,12 +217,12 @@ def EmptyPairList():
 PrependList = MkCons
 
 
-def SingleList(x: AST):
-    return PrependList(x, EmptyList())
+def SingleDataList(x: AST):
+    return PrependList(x, EmptyDataList())
 
 
-def SinglePairList(x: AST):
-    return PrependList(x, EmptyPairList())
+def SingleDataPairList(x: AST):
+    return PrependList(x, EmptyDataPairList())
 
 
 def FoldList(l: AST, f: AST, a: AST):
@@ -250,7 +295,7 @@ def Range(limit: AST, start: AST = Integer(0), step: AST = Integer(1)):
                                 AddInteger(Var("cur"), Var("step")),
                             ),
                         ),
-                        EmptyList(),
+                        EmptyIntegerList(),
                     ),
                 )
             ),
@@ -261,7 +306,7 @@ def Range(limit: AST, start: AST = Integer(0), step: AST = Integer(1)):
     )
 
 
-def MapList(l: AST, m: AST = Lambda(["x"], Var("x"))):
+def MapList(l: AST, m: AST = Lambda(["x"], Var("x")), empty_list=EmptyDataList):
     """Apply a map function on each element in a list"""
     return Apply(
         Lambda(
@@ -271,7 +316,7 @@ def MapList(l: AST, m: AST = Lambda(["x"], Var("x"))):
                     ["map", "xs"],
                     Ite(
                         NullList(Var("xs")),
-                        EmptyList(),
+                        empty_list(),
                         PrependList(
                             Apply(Var("op"), HeadList(Var("xs"))),
                             Apply(
@@ -305,9 +350,9 @@ def NthField(d: AST, n: AST):
 
 
 def NoneData():
-    return ConstrData(Integer(0), EmptyList())
+    return ConstrData(Integer(0), EmptyDataList())
 
 
 def SomeData(x: AST):
     # Note: x must be of type data!
-    return ConstrData(Integer(1), SingleList(x))
+    return ConstrData(Integer(1), SingleDataList(x))
