@@ -91,4 +91,4 @@ class FunctionalTupleAccess(AST):
     def __new__(cls, tuple: AST, index: int, size: int):
         if size == 0:
             raise ValueError("Can not access elements of an empty tuple")
-        return Apply(Lambda([f"v{i}" for i in range(size)], Var(f"v{index}")), tuple)
+        return Apply(tuple, Lambda([f"v{i}" for i in range(size)], Var(f"v{index}")))
