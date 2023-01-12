@@ -184,7 +184,7 @@ def EmptyByteStringList():
 
 
 def EmptyTextList():
-    return EmptyList(uplc_ast.BuiltinText(""))
+    return EmptyList(uplc_ast.BuiltinString(""))
 
 
 def EmptyBoolList():
