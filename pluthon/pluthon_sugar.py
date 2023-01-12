@@ -156,51 +156,51 @@ def NotEqualsInteger(a: AST, b: AST):
 EqualsBool = Iff
 
 # List Utils
+@dataclass(frozen=True)
+class EmptyList(AST):
+    sample_value: uplc_ast.Constant
 
-
-class EmptyIntegerList(AST):
     def compile(self) -> uplc_ast.AST:
-        return uplc_ast.BuiltinList([], uplc_ast.BuiltinInteger(0))
+        return uplc_ast.BuiltinList([], self.sample_value)
+
+    def mk_nil_suffix(self):
+        if isinstance(self.sample_value, uplc_ast.BuiltinPair):
+            return f"Pair<{EmptyList(self.sample_value.l_value).mk_nil_suffix()}|{EmptyList(self.sample_value.r_value).mk_nil_suffix()}>"
+        if isinstance(self.sample_value, uplc_ast.BuiltinList):
+            return f"List{EmptyList(self.sample_value.sample_value).mk_nil_suffix()}"
+        return self.sample_value.__class__
 
     def dumps(self) -> str:
         # Note: this is not a real builtin. Essentially, this is not pluto
-        return "MkNilInteger ()"
+        return f"MkNil{self.mk_nil_suffix()} ()"
 
 
-class EmptyByteStringList(AST):
-    def compile(self) -> uplc_ast.AST:
-        return uplc_ast.BuiltinList([], uplc_ast.BuiltinByteString(b""))
-
-    def dumps(self) -> str:
-        # Note: this is not a real builtin. Essentially, this is not pluto
-        return "MkNilByteString ()"
+def EmptyIntegerList():
+    return EmptyList(uplc_ast.BuiltinInteger(0))
 
 
-class EmptyTextList(AST):
-    def compile(self) -> uplc_ast.AST:
-        return uplc_ast.BuiltinList([], uplc_ast.BuiltinText(""))
-
-    def dumps(self) -> str:
-        # Note: this is not a real builtin. Essentially, this is not pluto
-        return "MkNilText ()"
+def EmptyByteStringList():
+    return EmptyList(uplc_ast.BuiltinByteString(b""))
 
 
-class EmptyBoolList(AST):
-    def compile(self) -> uplc_ast.AST:
-        return uplc_ast.BuiltinList([], uplc_ast.BuiltinBool(False))
-
-    def dumps(self) -> str:
-        # Note: this is not a real builtin. Essentially, this is not pluto
-        return "MkNilBool ()"
+def EmptyTextList():
+    return EmptyList(uplc_ast.BuiltinText(""))
 
 
-class EmptyUnitList(AST):
-    def compile(self) -> uplc_ast.AST:
-        return uplc_ast.BuiltinList([], uplc_ast.BuiltinUnit())
+def EmptyBoolList():
+    return EmptyList(uplc_ast.BuiltinBool(False))
 
-    def dumps(self) -> str:
-        # Note: this is not a real builtin. Essentially, this is not pluto
-        return "MkNilUnit ()"
+
+def EmptyUnitList():
+    return EmptyList(uplc_ast.BuiltinUnit())
+
+
+def EmptyListList(sample_value: uplc_ast.BuiltinList):
+    return EmptyList(sample_value)
+
+
+def EmptyPairList(sample_value: uplc_ast.BuiltinPair):
+    return EmptyList(sample_value)
 
 
 def EmptyDataList():
@@ -306,7 +306,7 @@ def Range(limit: AST, start: AST = Integer(0), step: AST = Integer(1)):
     )
 
 
-def MapList(l: AST, m: AST = Lambda(["x"], Var("x")), empty_list=EmptyDataList):
+def MapList(l: AST, m: AST = Lambda(["x"], Var("x")), empty_list=EmptyDataList()):
     """Apply a map function on each element in a list"""
     return Apply(
         Lambda(
@@ -316,7 +316,7 @@ def MapList(l: AST, m: AST = Lambda(["x"], Var("x")), empty_list=EmptyDataList):
                     ["map", "xs"],
                     Ite(
                         NullList(Var("xs")),
-                        empty_list(),
+                        empty_list,
                         PrependList(
                             Apply(Var("op"), HeadList(Var("xs"))),
                             Apply(
