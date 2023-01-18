@@ -356,3 +356,26 @@ def NoneData():
 def SomeData(x: AST):
     # Note: x must be of type data!
     return ConstrData(Integer(1), SingleDataList(x))
+
+
+# Choose Utils
+
+
+def DelayedChooseData(
+    d: AST,
+    constr_branch: AST,
+    map_branch: AST,
+    list_branch: AST,
+    int_branch: AST,
+    bytestring_branch: AST,
+):
+    return Force(
+        ChooseData(
+            d,
+            Delay(constr_branch),
+            Delay(map_branch),
+            Delay(list_branch),
+            Delay(int_branch),
+            Delay(bytestring_branch),
+        )
+    )
