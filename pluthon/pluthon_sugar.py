@@ -334,6 +334,35 @@ def MapList(l: AST, m: AST = Lambda(["x"], Var("x")), empty_list=EmptyDataList()
     )
 
 
+def FindList(l: AST, key: AST, default: AST):
+    """Returns the first element in the list where key evaluates to true - otherwise returns default"""
+    return Apply(
+        Lambda(
+            ["op"],
+            RecFun(
+                Lambda(
+                    ["f", "xs"],
+                    Ite(
+                        NullList(Var("xs")),
+                        default,
+                        Ite(
+                            Apply(Var("op"), HeadList(Var("xs"))),
+                            HeadList(Var("xs")),
+                            Apply(
+                                Var("f"),
+                                Var("f"),
+                                TailList(Var("xs")),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        key,
+        l,
+    )
+
+
 # Data Utils
 
 
