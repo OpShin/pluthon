@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 import typing
 
-import frozendict
-from uplc import uplc_ast, machine
+from uplc import ast as uplc_ast, machine
 
 
 class AST:
