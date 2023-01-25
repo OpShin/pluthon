@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import typing
 
-from uplc import ast as uplc_ast, machine
+from uplc import ast as uplc_ast, eval as uplc_eval
 
 
 class AST:
@@ -12,7 +12,7 @@ class AST:
         raise NotImplementedError()
 
     def eval(self) -> str:
-        return machine.Machine(self.compile()).eval()
+        return uplc_eval(self.compile())
 
 
 @dataclass
