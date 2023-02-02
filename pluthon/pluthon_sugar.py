@@ -18,6 +18,22 @@ def Iff(x: AST, y: AST):
     return Ite(x, y, Not(y))
 
 
+def And(x: AST, y: AST):
+    return Ite(x, y, Bool(False))
+
+
+def Or(x: AST, y: AST):
+    return Ite(x, Bool(True), y)
+
+
+def Xor(x: AST, y: AST):
+    return Ite(x, Not(y), y)
+
+
+def Implies(x: AST, y: AST):
+    return Ite(x, y, Bool(True))
+
+
 def wrap_builtin_binop(b: uplc_ast.BuiltInFun):
     def wrapped(x: AST, y: AST):
         return Apply(BuiltIn(b), x, y)
