@@ -169,6 +169,10 @@ def NotEqualsInteger(a: AST, b: AST):
     return Not(EqualsInteger(a, b))
 
 
+def Negate(a: AST):
+    return SubtractInteger(Integer(0), a)
+
+
 EqualsBool = Iff
 
 # List Utils
