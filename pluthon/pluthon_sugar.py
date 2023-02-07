@@ -268,6 +268,37 @@ def FoldList(l: AST, f: AST, a: AST):
     )
 
 
+def RFoldList(l: AST, f: AST, a: AST):
+    """Right fold over a list l operator f: accumulator -> list_elem -> accumulator with initial value a"""
+    return Apply(
+        Lambda(
+            ["op"],
+            RecFun(
+                Lambda(
+                    ["fold", "xs", "a"],
+                    Ite(
+                        NullList(Var("xs")),
+                        Var("a"),
+                        Apply(
+                            Var("op"),
+                            Apply(
+                                Var("fold"),
+                                Var("fold"),
+                                TailList(Var("xs")),
+                                Var("a"),
+                            ),
+                            HeadList(Var("xs")),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        f,
+        l,
+        a,
+    )
+
+
 def IndexAccessList(l: AST, i: AST):
     return Apply(
         RecFun(
