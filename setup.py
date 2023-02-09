@@ -24,7 +24,7 @@ setup(
     url=pluthon.__url__,
     py_modules=["uplc"],
     packages=find_packages(),
-    install_requires=["uplc==0.5.2"],
+    install_requires=["uplc==0.5.3"],
     long_description=long_description,
     long_description_content_type="text/markdown",
     license=pluthon.__license__,

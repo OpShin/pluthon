@@ -414,6 +414,10 @@ def FindList(l: AST, key: AST, default: AST):
     )
 
 
+def LengthList(l: AST):
+    return FoldList(l, Lambda(["a", "_"], AddInteger(Var("a"), Integer(1))), Integer(0))
+
+
 # Data Utils
 
 
