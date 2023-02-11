@@ -414,6 +414,45 @@ def FindList(l: AST, key: AST, default: AST):
     )
 
 
+def FilterList(l: AST, k: AST, empty_list=EmptyDataList()):
+    """Apply a filter function on each element in a list (throws out all that evaluate to false)"""
+    return Apply(
+        Lambda(
+            ["op"],
+            RecFun(
+                Lambda(
+                    ["filter", "xs"],
+                    Ite(
+                        NullList(Var("xs")),
+                        empty_list,
+                        Let(
+                            [("head", HeadList(Var("xs")))],
+                            Ite(
+                                Apply(Var("op"), Var("head")),
+                                PrependList(
+                                    Var("head"),
+                                    Apply(
+                                        Var("filter"),
+                                        Var("filter"),
+                                        TailList(Var("xs")),
+                                    ),
+                                ),
+                                Apply(
+                                    Var("filter"),
+                                    Var("filter"),
+                                    TailList(Var("xs")),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        k,
+        l,
+    )
+
+
 def LengthList(l: AST):
     return FoldList(l, Lambda(["a", "_"], AddInteger(Var("a"), Integer(1))), Integer(0))
 
