@@ -15,7 +15,7 @@ def Not(x: AST):
 
 
 def Iff(x: AST, y: AST):
-    return Ite(x, y, Not(y))
+    return Let([("y", y)], Ite(x, Var("y"), Not(Var("y"))))
 
 
 def And(x: AST, y: AST):
@@ -27,7 +27,7 @@ def Or(x: AST, y: AST):
 
 
 def Xor(x: AST, y: AST):
-    return Ite(x, Not(y), y)
+    return Let([("y", y)], Ite(x, Not(Var("y")), Var("y")))
 
 
 def Implies(x: AST, y: AST):
