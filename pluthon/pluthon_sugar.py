@@ -240,6 +240,17 @@ def EmptyDataPairList():
     return MkNilPairData(Unit())
 
 
+def IteNullList(l: AST, i: AST, e: AST):
+    # Ite based on whether a list is empty or not, choose over Ite(NullList(l), i, e) for performance reasons
+    return Force(
+        ChooseList(
+            l,
+            Delay(i),
+            Delay(e),
+        )
+    )
+
+
 # Prepend an element to a list
 PrependList = MkCons
 
@@ -260,8 +271,8 @@ def FoldList(l: AST, f: AST, a: AST):
             RecFun(
                 Lambda(
                     ["fold", "xs", "a"],
-                    Ite(
-                        NullList(Var("xs")),
+                    IteNullList(
+                        Var("xs"),
                         Var("a"),
                         Apply(
                             Var("fold"),
@@ -287,8 +298,8 @@ def RFoldList(l: AST, f: AST, a: AST):
             RecFun(
                 Lambda(
                     ["fold", "xs", "a"],
-                    Ite(
-                        NullList(Var("xs")),
+                    IteNullList(
+                        Var("xs"),
                         Var("a"),
                         Apply(
                             Var("op"),
@@ -315,8 +326,8 @@ def IndexAccessList(l: AST, i: AST):
         RecFun(
             Lambda(
                 ["f", "i", "xs"],
-                Ite(
-                    NullList(Var("xs")),
+                IteNullList(
+                    Var("xs"),
                     TraceError("IndexError"),
                     Ite(
                         EqualsInteger(Var("i"), Integer(0)),
@@ -372,8 +383,8 @@ def MapList(l: AST, m: AST = Lambda(["x"], Var("x")), empty_list=EmptyDataList()
             RecFun(
                 Lambda(
                     ["map", "xs"],
-                    Ite(
-                        NullList(Var("xs")),
+                    IteNullList(
+                        Var("xs"),
                         empty_list,
                         PrependList(
                             Apply(Var("op"), HeadList(Var("xs"))),
@@ -400,8 +411,8 @@ def FindList(l: AST, key: AST, default: AST):
             RecFun(
                 Lambda(
                     ["f", "xs"],
-                    Ite(
-                        NullList(Var("xs")),
+                    IteNullList(
+                        Var("xs"),
                         default,
                         Ite(
                             Apply(Var("op"), HeadList(Var("xs"))),
@@ -429,8 +440,8 @@ def FilterList(l: AST, k: AST, empty_list=EmptyDataList()):
             RecFun(
                 Lambda(
                     ["filter", "xs"],
-                    Ite(
-                        NullList(Var("xs")),
+                    IteNullList(
+                        Var("xs"),
                         empty_list,
                         Let(
                             [("head", HeadList(Var("xs")))],
@@ -471,8 +482,8 @@ def MapFilterList(l: AST, filter_op: AST, map_op: AST, empty_list=EmptyDataList(
             RecFun(
                 Lambda(
                     ["filtermap", "xs"],
-                    Ite(
-                        NullList(Var("xs")),
+                    IteNullList(
+                        Var("xs"),
                         empty_list,
                         Let(
                             [("head", HeadList(Var("xs")))],
