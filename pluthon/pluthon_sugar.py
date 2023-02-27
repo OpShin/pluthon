@@ -460,6 +460,49 @@ def FilterList(l: AST, k: AST, empty_list=EmptyDataList()):
     )
 
 
+def MapFilterList(l: AST, filter_op: AST, map_op: AST, empty_list=EmptyDataList()):
+    """
+    Apply a filter and a map function on each element in a list (throws out all that evaluate to false)
+    Performs only a single pass and is hence much more efficient than filter + map
+    """
+    return Apply(
+        Lambda(
+            ["filter", "map"],
+            RecFun(
+                Lambda(
+                    ["filtermap", "xs"],
+                    Ite(
+                        NullList(Var("xs")),
+                        empty_list,
+                        Let(
+                            [("head", HeadList(Var("xs")))],
+                            Ite(
+                                Apply(Var("filter"), Var("head")),
+                                PrependList(
+                                    Apply(Var("map"), Var("head")),
+                                    Apply(
+                                        Var("filtermap"),
+                                        Var("filtermap"),
+                                        TailList(Var("xs")),
+                                    ),
+                                ),
+                                Apply(
+                                    Var("filtermap"),
+                                    Var("filtermap"),
+                                    TailList(Var("xs")),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        filter_op,
+        map_op,
+        l,
+    )
+
+
 def LengthList(l: AST):
     return FoldList(l, Lambda(["a", "_"], AddInteger(Var("a"), Integer(1))), Integer(0))
 
