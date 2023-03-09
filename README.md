@@ -1,6 +1,6 @@
 Pluthon
 =======
-[![Build Status](https://app.travis-ci.com/ImperatorLang/pluthon.svg?branch=master)](https://app.travis-ci.com/ImperatorLang/pluthon)
+[![Build Status](https://app.travis-ci.com/OpShin/pluthon.svg?branch=master)](https://app.travis-ci.com/OpShin/pluthon)
  [![PyPI version](https://badge.fury.io/py/pluthon.svg)](https://pypi.org/project/pluthon/)
  ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pluthon.svg)
  [![PyPI - Status](https://img.shields.io/pypi/status/pluthon.svg)](https://pypi.org/project/pluthon/)
