@@ -14,4 +14,11 @@ This is an programming language that compiles down to Untyped Plutus Language Co
 programming language.
 It is used as an intermediate step when compiling a pythonic smart contract language down to UPLC.
 
+
+## Contributing
+
 Contributions are very welcome.
+
+## Notes
+
+- Some higher level functions defined in pluthon use UPLC builtin variables. In order to avoid naming conflicts, all variables assigned start with "_" and end with "#".
