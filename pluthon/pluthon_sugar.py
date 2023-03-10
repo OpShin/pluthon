@@ -4,7 +4,7 @@ from .pluthon_ast import *
 
 
 def name_scheme_compatible_varname(x: str):
-    return f"_{x}#"
+    return f"0{x}_"
 
 
 def PVar(x: str):

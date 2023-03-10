@@ -21,4 +21,4 @@ Contributions are very welcome.
 
 ## Notes
 
-- Some higher level functions defined in pluthon use UPLC builtin variables. In order to avoid naming conflicts, all variables assigned start with "_" and end with "#".
+- Some higher level functions defined in pluthon use UPLC builtin variables. In order to avoid naming conflicts, all variables assigned start with "0" and end with "_".
