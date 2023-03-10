@@ -8,6 +8,7 @@ Built on wrapped lambda terms
 """
 identity = lambda x: x
 
+
 _BUILTIN_TYPE_MAP = {
     bytes: (ByteString, identity),
     str: (ByteString, lambda x: x.encode()),
@@ -29,17 +30,17 @@ def FunctionalMapExtend(
 ) -> "FunctionalMap":
     additional_compares = Apply(
         old_statemonad,
-        Var("x"),
-        Var("def"),
+        PVar("x"),
+        PVar("def"),
     )
     for name, value in zip(names, values):
         keytype, transform = _BUILTIN_TYPE_MAP[type(name)]
         additional_compares = Ite(
-            _EQUALS_MAP[keytype](Var("x"), keytype(transform(name))),
+            _EQUALS_MAP[keytype](PVar("x"), keytype(transform(name))),
             Delay(value),
             additional_compares,
         )
-    return Lambda(
+    return PLambda(
         ["x", "def"],
         additional_compares,
     )
@@ -51,7 +52,7 @@ class FunctionalMap(AST):
     def __new__(
         cls, kv: typing.Optional[typing.Dict[typing.Any, AST]] = None
     ) -> "FunctionalMap":
-        res = Lambda(["x", "def"], Var("def"))
+        res = PLambda(["x", "def"], PVar("def"))
         if kv is not None:
             res = FunctionalMapExtend(res, kv.keys(), kv.values())
         return res
@@ -83,8 +84,8 @@ class FunctionalTuple(AST):
         # idea: just construct a nested if/else comparison
         if not vs:
             return Unit()
-        param = Var("__f__")
-        return Lambda([param.name], Apply(param, *map(Delay, vs)))
+        param = PVar("__f__")
+        return PLambda([param.name], Apply(param, *map(Delay, vs)))
 
 
 class FunctionalTupleAccess(AST):
@@ -92,5 +93,5 @@ class FunctionalTupleAccess(AST):
         if size == 0:
             raise ValueError("Can not access elements of an empty tuple")
         return Apply(
-            tuple, Lambda([f"v{i}" for i in range(size)], Force(Var(f"v{index}")))
+            tuple, PLambda([f"v{i}" for i in range(size)], Force(PVar(f"v{index}")))
         )

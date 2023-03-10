@@ -3,10 +3,37 @@ from .pluthon_ast import *
 ########## Pluto Abstractions that simplify handling complex structures ####################
 
 
+def name_scheme_compatible_varname(x: str):
+    return f"_{x}#"
+
+
+def PVar(x: str):
+    """
+    A simple wrapper around Var to ensure adherence to the naming scheme
+    :param x: name of the variable
+    :return: variable for use with pluthon, adhering to the naming scheme
+    """
+    return Var(name_scheme_compatible_varname(x))
+
+
+def PLambda(vars: typing.List[str], term: AST):
+    """
+    A simple wrapper around Lambda to ensure adherence to the naming scheme
+    """
+    return Lambda(list(map(name_scheme_compatible_varname, vars)), term)
+
+
+def PLet(bindings: typing.List[typing.Tuple[str, AST]], term: AST):
+    """
+    A simple wrapper around Let to ensure adherence to the naming scheme
+    """
+    return Let([(name_scheme_compatible_varname(x), y) for x, y in bindings], term)
+
+
 def RecFun(x: AST):
-    return Let(
+    return PLet(
         [("g", x)],
-        Apply(Var("g"), Var("g")),
+        Apply(PVar("g"), PVar("g")),
     )
 
 
@@ -15,7 +42,7 @@ def Not(x: AST):
 
 
 def Iff(x: AST, y: AST):
-    return Let([("y", y)], Ite(x, Var("y"), Not(Var("y"))))
+    return PLet([("y", y)], Ite(x, PVar("y"), Not(PVar("y"))))
 
 
 def And(x: AST, y: AST):
@@ -27,7 +54,7 @@ def Or(x: AST, y: AST):
 
 
 def Xor(x: AST, y: AST):
-    return Let([("y", y)], Ite(x, Not(Var("y")), Var("y")))
+    return PLet([("y", y)], Ite(x, Not(PVar("y")), PVar("y")))
 
 
 def Implies(x: AST, y: AST):
@@ -266,19 +293,19 @@ def SingleDataPairList(x: AST):
 def FoldList(l: AST, f: AST, a: AST):
     """Left fold over a list l operator f: accumulator -> list_elem -> accumulator with initial value a"""
     return Apply(
-        Lambda(
+        PLambda(
             ["op"],
             RecFun(
-                Lambda(
+                PLambda(
                     ["fold", "xs", "a"],
                     IteNullList(
-                        Var("xs"),
-                        Var("a"),
+                        PVar("xs"),
+                        PVar("a"),
                         Apply(
-                            Var("fold"),
-                            Var("fold"),
-                            TailList(Var("xs")),
-                            Apply(Var("op"), Var("a"), HeadList(Var("xs"))),
+                            PVar("fold"),
+                            PVar("fold"),
+                            TailList(PVar("xs")),
+                            Apply(PVar("op"), PVar("a"), HeadList(PVar("xs"))),
                         ),
                     ),
                 ),
@@ -293,23 +320,23 @@ def FoldList(l: AST, f: AST, a: AST):
 def RFoldList(l: AST, f: AST, a: AST):
     """Right fold over a list l operator f: accumulator -> list_elem -> accumulator with initial value a"""
     return Apply(
-        Lambda(
+        PLambda(
             ["op"],
             RecFun(
-                Lambda(
+                PLambda(
                     ["fold", "xs", "a"],
                     IteNullList(
-                        Var("xs"),
-                        Var("a"),
+                        PVar("xs"),
+                        PVar("a"),
                         Apply(
-                            Var("op"),
+                            PVar("op"),
                             Apply(
-                                Var("fold"),
-                                Var("fold"),
-                                TailList(Var("xs")),
-                                Var("a"),
+                                PVar("fold"),
+                                PVar("fold"),
+                                TailList(PVar("xs")),
+                                PVar("a"),
                             ),
-                            HeadList(Var("xs")),
+                            HeadList(PVar("xs")),
                         ),
                     ),
                 ),
@@ -324,19 +351,19 @@ def RFoldList(l: AST, f: AST, a: AST):
 def IndexAccessList(l: AST, i: AST):
     return Apply(
         RecFun(
-            Lambda(
+            PLambda(
                 ["f", "i", "xs"],
                 IteNullList(
-                    Var("xs"),
+                    PVar("xs"),
                     TraceError("IndexError"),
                     Ite(
-                        EqualsInteger(Var("i"), Integer(0)),
-                        HeadList(Var("xs")),
+                        EqualsInteger(PVar("i"), Integer(0)),
+                        HeadList(PVar("xs")),
                         Apply(
-                            Var("f"),
-                            Var("f"),
-                            SubtractInteger(Var("i"), Integer(1)),
-                            TailList(Var("xs")),
+                            PVar("f"),
+                            PVar("f"),
+                            SubtractInteger(PVar("i"), Integer(1)),
+                            TailList(PVar("xs")),
                         ),
                     ),
                 ),
@@ -349,19 +376,19 @@ def IndexAccessList(l: AST, i: AST):
 
 def Range(limit: AST, start: AST = Integer(0), step: AST = Integer(1)):
     return Apply(
-        Lambda(
+        PLambda(
             ["limit", "step"],
             RecFun(
-                Lambda(
+                PLambda(
                     ["f", "cur"],
                     Ite(
-                        LessThanInteger(Var("cur"), Var("limit")),
+                        LessThanInteger(PVar("cur"), PVar("limit")),
                         PrependList(
-                            Var("cur"),
+                            PVar("cur"),
                             Apply(
-                                Var("f"),
-                                Var("f"),
-                                AddInteger(Var("cur"), Var("step")),
+                                PVar("f"),
+                                PVar("f"),
+                                AddInteger(PVar("cur"), PVar("step")),
                             ),
                         ),
                         EmptyIntegerList(),
@@ -375,23 +402,23 @@ def Range(limit: AST, start: AST = Integer(0), step: AST = Integer(1)):
     )
 
 
-def MapList(l: AST, m: AST = Lambda(["x"], Var("x")), empty_list=EmptyDataList()):
+def MapList(l: AST, m: AST = PLambda(["x"], PVar("x")), empty_list=EmptyDataList()):
     """Apply a map function on each element in a list"""
     return Apply(
-        Lambda(
+        PLambda(
             ["op"],
             RecFun(
-                Lambda(
+                PLambda(
                     ["map", "xs"],
                     IteNullList(
-                        Var("xs"),
+                        PVar("xs"),
                         empty_list,
                         PrependList(
-                            Apply(Var("op"), HeadList(Var("xs"))),
+                            Apply(PVar("op"), HeadList(PVar("xs"))),
                             Apply(
-                                Var("map"),
-                                Var("map"),
-                                TailList(Var("xs")),
+                                PVar("map"),
+                                PVar("map"),
+                                TailList(PVar("xs")),
                             ),
                         ),
                     ),
@@ -406,21 +433,21 @@ def MapList(l: AST, m: AST = Lambda(["x"], Var("x")), empty_list=EmptyDataList()
 def FindList(l: AST, key: AST, default: AST):
     """Returns the first element in the list where key evaluates to true - otherwise returns default"""
     return Apply(
-        Lambda(
+        PLambda(
             ["op"],
             RecFun(
-                Lambda(
+                PLambda(
                     ["f", "xs"],
                     IteNullList(
-                        Var("xs"),
+                        PVar("xs"),
                         default,
                         Ite(
-                            Apply(Var("op"), HeadList(Var("xs"))),
-                            HeadList(Var("xs")),
+                            Apply(PVar("op"), HeadList(PVar("xs"))),
+                            HeadList(PVar("xs")),
                             Apply(
-                                Var("f"),
-                                Var("f"),
-                                TailList(Var("xs")),
+                                PVar("f"),
+                                PVar("f"),
+                                TailList(PVar("xs")),
                             ),
                         ),
                     ),
@@ -435,30 +462,30 @@ def FindList(l: AST, key: AST, default: AST):
 def FilterList(l: AST, k: AST, empty_list=EmptyDataList()):
     """Apply a filter function on each element in a list (throws out all that evaluate to false)"""
     return Apply(
-        Lambda(
+        PLambda(
             ["op"],
             RecFun(
-                Lambda(
+                PLambda(
                     ["filter", "xs"],
                     IteNullList(
-                        Var("xs"),
+                        PVar("xs"),
                         empty_list,
-                        Let(
-                            [("head", HeadList(Var("xs")))],
+                        PLet(
+                            [("head", HeadList(PVar("xs")))],
                             Ite(
-                                Apply(Var("op"), Var("head")),
+                                Apply(PVar("op"), PVar("head")),
                                 PrependList(
-                                    Var("head"),
+                                    PVar("head"),
                                     Apply(
-                                        Var("filter"),
-                                        Var("filter"),
-                                        TailList(Var("xs")),
+                                        PVar("filter"),
+                                        PVar("filter"),
+                                        TailList(PVar("xs")),
                                     ),
                                 ),
                                 Apply(
-                                    Var("filter"),
-                                    Var("filter"),
-                                    TailList(Var("xs")),
+                                    PVar("filter"),
+                                    PVar("filter"),
+                                    TailList(PVar("xs")),
                                 ),
                             ),
                         ),
@@ -477,30 +504,30 @@ def MapFilterList(l: AST, filter_op: AST, map_op: AST, empty_list=EmptyDataList(
     Performs only a single pass and is hence much more efficient than filter + map
     """
     return Apply(
-        Lambda(
+        PLambda(
             ["filter", "map"],
             RecFun(
-                Lambda(
+                PLambda(
                     ["filtermap", "xs"],
                     IteNullList(
-                        Var("xs"),
+                        PVar("xs"),
                         empty_list,
-                        Let(
-                            [("head", HeadList(Var("xs")))],
+                        PLet(
+                            [("head", HeadList(PVar("xs")))],
                             Ite(
-                                Apply(Var("filter"), Var("head")),
+                                Apply(PVar("filter"), PVar("head")),
                                 PrependList(
-                                    Apply(Var("map"), Var("head")),
+                                    Apply(PVar("map"), PVar("head")),
                                     Apply(
-                                        Var("filtermap"),
-                                        Var("filtermap"),
-                                        TailList(Var("xs")),
+                                        PVar("filtermap"),
+                                        PVar("filtermap"),
+                                        TailList(PVar("xs")),
                                     ),
                                 ),
                                 Apply(
-                                    Var("filtermap"),
-                                    Var("filtermap"),
-                                    TailList(Var("xs")),
+                                    PVar("filtermap"),
+                                    PVar("filtermap"),
+                                    TailList(PVar("xs")),
                                 ),
                             ),
                         ),
@@ -515,7 +542,9 @@ def MapFilterList(l: AST, filter_op: AST, map_op: AST, empty_list=EmptyDataList(
 
 
 def LengthList(l: AST):
-    return FoldList(l, Lambda(["a", "_"], AddInteger(Var("a"), Integer(1))), Integer(0))
+    return FoldList(
+        l, PLambda(["a", "_"], AddInteger(PVar("a"), Integer(1))), Integer(0)
+    )
 
 
 # Data Utils
