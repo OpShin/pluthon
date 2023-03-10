@@ -84,8 +84,8 @@ class FunctionalTuple(AST):
         # idea: just construct a nested if/else comparison
         if not vs:
             return Unit()
-        param = PVar("__f__")
-        return PLambda([param.name], Apply(param, *map(Delay, vs)))
+        param_name = "__f__"
+        return PLambda([param_name], Apply(PVar(param_name), *map(Delay, vs)))
 
 
 class FunctionalTupleAccess(AST):
