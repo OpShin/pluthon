@@ -17,7 +17,7 @@ class AST:
 
 @dataclass
 class Program(AST):
-    version: str
+    version: typing.Tuple[int, int, int]
     prog: AST
 
     def compile(self):
