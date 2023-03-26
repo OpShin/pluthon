@@ -154,7 +154,7 @@ LessThanEqualsByteString = wrap_builtin_binop(
 Sha2_256 = wrap_builtin_unop(uplc_ast.BuiltInFun.Sha2_256)
 Sha3_256 = wrap_builtin_unop(uplc_ast.BuiltInFun.Sha3_256)
 Blake2b_256 = wrap_builtin_unop(uplc_ast.BuiltInFun.Blake2b_256)
-VerifySignature = wrap_builtin_ternop(uplc_ast.BuiltInFun.VerifySignature)
+VerifySignature = wrap_builtin_ternop(uplc_ast.BuiltInFun.VerifyEd25519Signature)
 VerifyEd25519Signature = wrap_builtin_ternop(uplc_ast.BuiltInFun.VerifyEd25519Signature)
 VerifyEcdsaSecp256k1Signature = wrap_builtin_ternop(
     uplc_ast.BuiltInFun.VerifyEcdsaSecp256k1Signature
