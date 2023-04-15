@@ -192,6 +192,7 @@ EqualsData = wrap_builtin_binop(uplc_ast.BuiltInFun.EqualsData)
 MkPairData = wrap_builtin_binop(uplc_ast.BuiltInFun.MkPairData)
 MkNilData = wrap_builtin_unop(uplc_ast.BuiltInFun.MkNilData)
 MkNilPairData = wrap_builtin_unop(uplc_ast.BuiltInFun.MkNilPairData)
+SerialiseData = wrap_builtin_unop(uplc_ast.BuiltInFun.SerialiseData)
 
 # Generic Utils
 
