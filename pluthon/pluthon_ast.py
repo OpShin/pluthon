@@ -153,6 +153,22 @@ class Unit(AST):
 
 
 @dataclass
+class UPLCConstant(AST):
+    """
+    A generic UPLC constant that can be written directly in pluthon
+    Note: not present in pluthon
+    """
+
+    x: uplc_ast.Constant
+
+    def compile(self):
+        return self.x
+
+    def dumps(self) -> str:
+        return f"uplc[{self.x.dumps(dialect=uplc_ast.UPLCDialect.Aiken)}]"
+
+
+@dataclass
 class BuiltIn(AST):
     builtin: uplc_ast.BuiltInFun
 
