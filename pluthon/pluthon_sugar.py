@@ -593,3 +593,22 @@ def DelayedChooseData(
             Delay(bytestring_branch),
         )
     )
+
+
+# concatenation utils
+
+
+def _concat(append, empty):
+    def f(*ss: typing.List[AST]):
+        if not ss:
+            return empty
+        c = ss[-1]
+        for s in ss[:-1]:
+            c = append(s, c)
+        return c
+
+    return f
+
+
+ConcatString = _concat(AppendString, Text(""))
+ConcatByteString = _concat(AppendByteString, ByteString(b""))
