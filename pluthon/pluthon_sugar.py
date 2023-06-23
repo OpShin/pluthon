@@ -603,7 +603,7 @@ def _concat(append, empty):
         if not ss:
             return empty
         c = ss[-1]
-        for s in ss[:-1]:
+        for s in reversed(ss[:-1]):
             c = append(s, c)
         return c
 
