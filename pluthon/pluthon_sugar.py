@@ -193,6 +193,9 @@ MkPairData = wrap_builtin_binop(uplc_ast.BuiltInFun.MkPairData)
 MkNilData = wrap_builtin_unop(uplc_ast.BuiltInFun.MkNilData)
 MkNilPairData = wrap_builtin_unop(uplc_ast.BuiltInFun.MkNilPairData)
 SerialiseData = wrap_builtin_unop(uplc_ast.BuiltInFun.SerialiseData)
+Bn128Add = wrap_builtin_binop(uplc_ast.BuiltInFun.Bn128Add)
+Bn128Mul = wrap_builtin_binop(uplc_ast.BuiltInFun.Bn128Mul)
+Bn256Pairing = wrap_builtin_binop(uplc_ast.BuiltInFun.Bn256Pairing)
 
 # Generic Utils
 
