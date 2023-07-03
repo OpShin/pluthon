@@ -38,7 +38,7 @@ def RecFun(x: AST):
 
 
 def Not(x: AST):
-    return Ite(x, Bool(False), Bool(True))
+    return IfThenElse(x, Bool(False), Bool(True))
 
 
 def Iff(x: AST, y: AST):
