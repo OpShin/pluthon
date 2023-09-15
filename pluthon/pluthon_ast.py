@@ -236,3 +236,18 @@ class Ite(AST):
 
     def dumps(self) -> str:
         return f"(if {self.i.dumps()} then {self.t.dumps()} else {self.e.dumps()})"
+
+
+@dataclass
+class Pattern(AST):
+    """Marks a more abstract pattern that can be shrinked by the compiler by reusage"""
+
+    def compose(self):
+        """Composes the variables to a pluto pattern"""
+        raise NotImplementedError()
+
+    def compile(self):
+        return self.compose().compile()
+
+    def dumps(self) -> str:
+        return self.compose().dumps()
