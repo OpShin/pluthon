@@ -493,7 +493,7 @@ class MapList(Pattern):
 
     l: AST
     m: AST = field(default_factory=lambda: PLambda(["x"], PVar("x")))
-    empty_list = field(default_factory=EmptyDataList)
+    empty_list: AST = field(default_factory=EmptyDataList)
 
     def compose(self):
         return Apply(
@@ -564,7 +564,7 @@ class FilterList(Pattern):
 
     l: AST
     k: AST
-    empty_list = field(default_factory=EmptyDataList)
+    empty_list: AST = field(default_factory=EmptyDataList)
 
     def compose(self):
         return Apply(
@@ -614,7 +614,7 @@ class MapFilterList(Pattern):
     l: AST
     filter_op: AST
     map_op: AST
-    empty_list = field(default_factory=EmptyDataList)
+    empty_list: AST = field(default_factory=EmptyDataList)
 
     def compose(self):
         return Apply(
