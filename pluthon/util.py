@@ -1,6 +1,7 @@
+from .pluthon_ast import Pattern
+
 from ast import iter_fields
 from copy import copy
-from pluthon_ast import Pattern
 
 
 class NodeVisitor(object):
