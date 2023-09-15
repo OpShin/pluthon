@@ -62,7 +62,7 @@ class FunctionalMap(AST):
 class FunctionalMapAccess(Pattern):
     m: AST
     k: AST
-    default: AST = TraceError("KeyError")
+    default: AST = field(default_factory=TraceError("KeyError"))
 
     def compose(self):
         return Force(Apply(self.m, self.k, Delay(self.default)))
