@@ -1,4 +1,4 @@
-from .pluthon_ast import Pattern
+from .pluthon_ast import Pattern, Let
 
 from ast import iter_fields
 from copy import copy
@@ -35,6 +35,9 @@ class NodeVisitor(object):
 
     def generic_visit(self, node):
         """Called if no explicit visitor function exists for a node."""
+        if isinstance(node, Let):
+            for binding in node.bindings:
+                self.visit(binding[1])
         for field, value in iter_fields(node):
             self.visit(value)
 
@@ -77,6 +80,10 @@ class NodeTransformer(NodeVisitor):
 
     def generic_visit(self, node):
         node = copy(node)
+        if isinstance(node, Let):
+            node.bindings = [
+                (name, self.visit(binding)) for name, binding in node.bindings
+            ]
         for field, old_value in iter_fields(node):
             new_node = self.visit(old_value)
             if new_node is None:

@@ -19,6 +19,7 @@ class AST:
 class Program(AST):
     version: typing.Tuple[int, int, int]
     prog: AST
+    _fields = ["prog"]
 
     def compile(self):
         return uplc_ast.Program(self.version, self.prog.compile())
@@ -31,6 +32,7 @@ class Program(AST):
 @dataclass
 class Var(AST):
     name: str
+    _fields = []
 
     def compile(self):
         return uplc_ast.Variable(self.name)
@@ -43,6 +45,7 @@ class Var(AST):
 class Lambda(AST):
     vars: typing.List[str]
     term: AST
+    _fields = ["term"]
 
     def compile(self):
         if not self.vars:
@@ -61,6 +64,7 @@ class Lambda(AST):
 class Apply(AST):
     f: AST
     xs: typing.List[AST]
+    _fields = ["f", "xs"]
 
     def __init__(self, f: AST, *xs: AST) -> None:
         super().__init__()
@@ -80,6 +84,7 @@ class Apply(AST):
 @dataclass
 class Force(AST):
     x: AST
+    _fields = ["x"]
 
     def compile(self):
         return uplc_ast.Force(self.x.compile())
@@ -91,6 +96,7 @@ class Force(AST):
 @dataclass
 class Delay(AST):
     x: AST
+    _fields = ["x"]
 
     def compile(self):
         return uplc_ast.Delay(self.x.compile())
@@ -102,6 +108,7 @@ class Delay(AST):
 @dataclass
 class Integer(AST):
     x: int
+    _fields = []
 
     def compile(self):
         return uplc_ast.BuiltinInteger(self.x)
@@ -113,6 +120,7 @@ class Integer(AST):
 @dataclass
 class ByteString(AST):
     x: bytes
+    _fields = []
 
     def compile(self):
         return uplc_ast.BuiltinByteString(self.x)
@@ -124,6 +132,7 @@ class ByteString(AST):
 @dataclass
 class Text(AST):
     x: str
+    _fields = []
 
     def compile(self):
         return uplc_ast.BuiltinString(self.x)
@@ -135,6 +144,7 @@ class Text(AST):
 @dataclass
 class Bool(AST):
     x: bool
+    _fields = []
 
     def compile(self):
         return uplc_ast.BuiltinBool(self.x)
@@ -145,6 +155,8 @@ class Bool(AST):
 
 @dataclass
 class Unit(AST):
+    _fields = []
+
     def compile(self):
         return uplc_ast.BuiltinUnit()
 
@@ -160,6 +172,7 @@ class UPLCConstant(AST):
     """
 
     x: uplc_ast.Constant
+    _fields = []
 
     def compile(self):
         return self.x
@@ -171,6 +184,7 @@ class UPLCConstant(AST):
 @dataclass
 class BuiltIn(AST):
     builtin: uplc_ast.BuiltInFun
+    _fields = []
 
     def compile(self):
         return uplc_ast.BuiltIn(self.builtin)
@@ -181,6 +195,8 @@ class BuiltIn(AST):
 
 @dataclass
 class Error(AST):
+    _fields = []
+
     def compile(self):
         # Wrap error such that it is never really executed
         return uplc_ast.Lambda("_", uplc_ast.Error())
@@ -191,8 +207,10 @@ class Error(AST):
 
 @dataclass
 class Let(AST):
+    # NOTE: visitor needs to take care to correctly visit the bindings
     bindings: typing.List[typing.Tuple[str, AST]]
     term: AST
+    _fields = ["term"]
 
     def compile(self):
         t = self.term.compile()
@@ -217,6 +235,7 @@ class Ite(AST):
     i: AST
     t: AST
     e: AST
+    _fields = ["i", "t", "e"]
 
     def compile(self):
         return uplc_ast.Force(
