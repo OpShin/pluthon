@@ -1,4 +1,5 @@
 from .pluthon_ast import *
+from dataclasses import field
 
 ########## Pluto Abstractions that simplify handling complex structures ####################
 
@@ -455,8 +456,8 @@ class IndexAccessList(Pattern):
 @dataclass
 class Range(Pattern):
     limit: AST
-    start: AST = Integer(0)
-    step: AST = Integer(1)
+    start: AST = field(default_factory=lambda: Integer(0))
+    step: AST = field(default_factory=lambda: Integer(1))
 
     def compose(self):
         return Apply(
@@ -491,8 +492,8 @@ class MapList(Pattern):
     """Apply a map function on each element in a list"""
 
     l: AST
-    m: AST = PLambda(["x"], PVar("x"))
-    empty_list = EmptyDataList()
+    m: AST = field(default_factory=lambda: PLambda(["x"], PVar("x")))
+    empty_list = field(default_factory=EmptyDataList)
 
     def compose(self):
         return Apply(
@@ -563,7 +564,7 @@ class FilterList(Pattern):
 
     l: AST
     k: AST
-    empty_list = EmptyDataList()
+    empty_list = field(default_factory=EmptyDataList)
 
     def compose(self):
         return Apply(
@@ -613,7 +614,7 @@ class MapFilterList(Pattern):
     l: AST
     filter_op: AST
     map_op: AST
-    empty_list = EmptyDataList()
+    empty_list = field(default_factory=EmptyDataList)
 
     def compose(self):
         return Apply(
