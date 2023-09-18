@@ -313,22 +313,16 @@ def EmptyDataPairList():
     return MkNilPairData(Unit())
 
 
-@dataclass
-class IteNullList(Pattern):
+def IteNullList(l: AST, i: AST, e: AST):
     """Ite based on whether a list is empty or not, choose over Ite(NullList(l), i, e) for performance reasons"""
-
-    l: AST
-    i: AST
-    e: AST
-
-    def compose(self):
-        return Force(
-            ChooseList(
-                self.l,
-                Delay(self.i),
-                Delay(self.e),
-            )
+    # Careful: can not patternize due to use of delay/force
+    return Force(
+        ChooseList(
+            l,
+            Delay(i),
+            Delay(e),
         )
+    )
 
 
 # Prepend an element to a list
@@ -712,26 +706,25 @@ class SomeData(Pattern):
 # Choose Utils
 
 
-@dataclass
-class DelayedChooseData(Pattern):
-    d: AST
-    constr_branch: AST
-    map_branch: AST
-    list_branch: AST
-    int_branch: AST
-    bytestring_branch: AST
-
-    def compose(self):
-        return Force(
-            ChooseData(
-                self.d,
-                Delay(self.constr_branch),
-                Delay(self.map_branch),
-                Delay(self.list_branch),
-                Delay(self.int_branch),
-                Delay(self.bytestring_branch),
-            )
+def DelayedChooseData(
+    d: AST,
+    constr_branch: AST,
+    map_branch: AST,
+    list_branch: AST,
+    int_branch: AST,
+    bytestring_branch: AST,
+):
+    # Careful: cannot patternize because of delay/force
+    return Force(
+        ChooseData(
+            d,
+            Delay(constr_branch),
+            Delay(map_branch),
+            Delay(list_branch),
+            Delay(int_branch),
+            Delay(bytestring_branch),
         )
+    )
 
 
 # concatenation utils
