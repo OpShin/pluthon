@@ -46,9 +46,8 @@ class PatternDepBuilder(NodeVisitor):
             # this ensures that the outermost pattern is added last
             node_type = type(node)
             # compose but without actual variables to avoid collecting patterns that are passed into the pattern
-            composed = make_abstract_function(node_type)
             subpattern_collector = PatternCollector()
-            subpattern_collector.visit(composed)
+            subpattern_collector.visit(make_abstract_function(node_type))
             subpatterns = subpattern_collector.patterns
             self.pattern_deps[node_type].update(subpatterns)
             res = self.visit(node.compose())
