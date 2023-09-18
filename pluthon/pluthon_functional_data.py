@@ -58,14 +58,9 @@ class FunctionalMap(AST):
         return res
 
 
-@dataclass
-class FunctionalMapAccess(Pattern):
-    m: AST
-    k: AST
-    default: AST = field(default_factory=lambda: TraceError("KeyError"))
-
-    def compose(self):
-        return Force(Apply(self.m, self.k, Delay(self.default)))
+def FunctionalMapAccess(m: AST, k: AST, default: AST = TraceError("KeyError")):
+    # Careful: this is not a pattern, delay breaks the pattern applicability
+    return Force(Apply(m, k, Delay(default)))
 
 
 TOPRIMITIVEVALUE = b"0"
