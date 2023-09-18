@@ -4,7 +4,7 @@ from typing import Type
 from graphlib import TopologicalSorter
 
 from .. import PVar, PLambda, PLet
-from ..pluthon_ast import Pattern, Program, Apply
+from ..pluthon_ast import Pattern, Program, Apply, Force, Delay
 from ..util import NodeTransformer, NodeVisitor, iter_fields
 
 
@@ -63,7 +63,7 @@ def make_abstract_function(pattern_class: Type[Pattern]):
     if fields:
         return PLambda(
             [f.name for f in fields],
-            pattern_class(*[PVar(f.name) for f in fields]).compose(),
+            pattern_class(*[Force(PVar(f.name)) for f in fields]).compose(),
         )
     else:
         return pattern_class().compose()
@@ -83,7 +83,7 @@ class PatternReplacer(NodeTransformer):
             if fields:
                 node = Apply(
                     pattern_var,
-                    *(field for _, field in iter_fields(node)),
+                    *(Delay(field) for _, field in iter_fields(node)),
                 )
             else:
                 node = pattern_var
