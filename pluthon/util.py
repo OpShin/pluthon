@@ -107,7 +107,7 @@ class NodeTransformer(NodeVisitor):
             ]
         for field, old_value in iter_fields(node):
             if isinstance(old_value, tuple):
-                node.field = list(old_value)
+                node.field = old_value = list(old_value)
             if isinstance(old_value, list):
                 new_values = []
                 for value in old_value:

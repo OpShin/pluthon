@@ -38,7 +38,6 @@ class PatternReplacer(NodeTransformer):
         """Visit a node."""
         if isinstance(node, Pattern):
             # Patterns are special
-            pattern = node
             pattern_var = PVar(make_abstract_function_name(type(node)))
             node = Apply(
                 pattern_var,
