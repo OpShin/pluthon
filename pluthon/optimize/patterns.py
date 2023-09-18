@@ -8,7 +8,7 @@ from ..pluthon_ast import Pattern, Program, Apply
 from ..util import NodeTransformer, NodeVisitor, iter_fields
 
 
-class PatternCollector(NodeVisitor):
+class ShallowPatternCollector(NodeVisitor):
     def __init__(self):
         self.patterns = set()
 
@@ -16,17 +16,15 @@ class PatternCollector(NodeVisitor):
         """Visit a node."""
         if isinstance(node, Pattern):
             # Patterns are special
-            # we collect them here and later add them in reverse order
-            # after subpatterns are added recursively
-            # this ensures that the outermost pattern is added last
+            # we collect them here to figure out dependencies between them
             node_type = type(node)
             self.patterns.add(node_type)
-            res = self.visit(node.compose())
+            for _, value in iter_fields(node):
+                self.visit(value)
         else:
             method = "visit_" + node.__class__.__name__
             visitor = getattr(self, method, self.generic_visit)
-            res = visitor(node)
-        return res
+            visitor(node)
 
 
 class PatternDepBuilder(NodeVisitor):
@@ -41,12 +39,11 @@ class PatternDepBuilder(NodeVisitor):
         """Visit a node."""
         if isinstance(node, Pattern):
             # Patterns are special
-            # we collect them here and later add them in reverse order
-            # after subpatterns are added recursively
-            # this ensures that the outermost pattern is added last
+            # we collect them here and later add their dependencies to the topological graph
+            # this ensures that accessed patterns are defined before they are used
             node_type = type(node)
             # compose but without actual variables to avoid collecting patterns that are passed into the pattern
-            subpattern_collector = PatternCollector()
+            subpattern_collector = ShallowPatternCollector()
             subpattern_collector.visit(make_abstract_function(node_type))
             subpatterns = subpattern_collector.patterns
             self.pattern_deps[node_type].update(subpatterns)

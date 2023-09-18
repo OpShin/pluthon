@@ -50,49 +50,25 @@ class Not(Pattern):
         return IfThenElse(self.x, Bool(False), Bool(True))
 
 
-@dataclass
-class Iff(Pattern):
-    x: AST
-    y: AST
-
-    def compose(self):
-        return PLet([("y", self.y)], Ite(self.x, PVar("y"), Not(PVar("y"))))
+# Careful: all of these plays on Ites are not patternizable due to use of delay/force
+def Iff(x: AST, y: AST):
+    return PLet([("y", y)], Ite(x, PVar("y"), Not(PVar("y"))))
 
 
-@dataclass
-class And(Pattern):
-    x: AST
-    y: AST
-
-    def compose(self):
-        return Ite(self.x, self.y, Bool(False))
+def And(x: AST, y: AST):
+    return Ite(x, y, Bool(False))
 
 
-@dataclass
-class Or(Pattern):
-    x: AST
-    y: AST
-
-    def compose(self):
-        return Ite(self.x, Bool(True), self.y)
+def Or(x: AST, y: AST):
+    return Ite(x, Bool(True), y)
 
 
-@dataclass
-class Xor(Pattern):
-    x: AST
-    y: AST
-
-    def compose(self):
-        return PLet([("y", self.y)], Ite(self.x, Not(PVar("y")), PVar("y")))
+def Xor(x: AST, y: AST):
+    return PLet([("y", y)], Ite(x, Not(PVar("y")), PVar("y")))
 
 
-@dataclass
-class Implies(Pattern):
-    x: AST
-    y: AST
-
-    def compose(self):
-        return Ite(self.x, self.y, Bool(True))
+def Implies(x: AST, y: AST):
+    return Ite(x, y, Bool(True))
 
 
 def wrap_builtin_binop(b: uplc_ast.BuiltInFun):
