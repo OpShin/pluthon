@@ -33,10 +33,13 @@ class PatternCollector(NodeVisitor):
 
 def make_abstract_function(pattern_class: Type[Pattern]):
     fields = dataclasses.fields(pattern_class)
-    return PLambda(
-        [f.name for f in fields],
-        pattern_class(*[PVar(f.name) for f in fields]).compose(),
-    )
+    if fields:
+        return PLambda(
+            [f.name for f in fields],
+            pattern_class(*[PVar(f.name) for f in fields]).compose(),
+        )
+    else:
+        return pattern_class().compose()
 
 
 def make_abstract_function_name(pattern_class: Type[Pattern]):
@@ -49,10 +52,14 @@ class PatternReplacer(NodeTransformer):
         if isinstance(node, Pattern):
             # Patterns are special
             pattern_var = PVar(make_abstract_function_name(type(node)))
-            node = Apply(
-                pattern_var,
-                *(field for _, field in iter_fields(node)),
-            )
+            fields = list(iter_fields(node))
+            if fields:
+                node = Apply(
+                    pattern_var,
+                    *(field for _, field in iter_fields(node)),
+                )
+            else:
+                node = pattern_var
         method = "visit_" + node.__class__.__name__
         visitor = getattr(self, method, self.generic_visit)
         return visitor(node)
