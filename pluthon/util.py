@@ -1,7 +1,23 @@
-from .pluthon_ast import Pattern, Let
+from .pluthon_ast import Pattern, Let, AST
 
-from ast import iter_fields
 from copy import copy
+from dataclasses import fields, MISSING
+
+
+def iter_fields(node: AST):
+    """
+    Yield a tuple of ``(fieldname, value)`` for each field in an AST node
+    """
+    for field in fields(node):
+        yield field.name, getattr(
+            node,
+            field.name,
+            field.default
+            if field.default is not MISSING
+            else field.default_factory()
+            if field.default_factory is not MISSING
+            else None,
+        )
 
 
 class NodeVisitor(object):
@@ -39,7 +55,12 @@ class NodeVisitor(object):
             for binding in node.bindings:
                 self.visit(binding[1])
         for field, value in iter_fields(node):
-            self.visit(value)
+            if isinstance(value, list) or isinstance(value, tuple):
+                for item in value:
+                    if isinstance(item, AST):
+                        self.visit(item)
+            elif isinstance(value, AST):
+                self.visit(value)
 
 
 class NodeTransformer(NodeVisitor):
@@ -85,9 +106,24 @@ class NodeTransformer(NodeVisitor):
                 (name, self.visit(binding)) for name, binding in node.bindings
             ]
         for field, old_value in iter_fields(node):
-            new_node = self.visit(old_value)
-            if new_node is None:
-                delattr(node, field)
-            else:
-                setattr(node, field, new_node)
+            if isinstance(old_value, tuple):
+                node.field = list(old_value)
+            if isinstance(old_value, list):
+                new_values = []
+                for value in old_value:
+                    if isinstance(value, AST):
+                        value = self.visit(value)
+                        if value is None:
+                            continue
+                        elif not isinstance(value, AST):
+                            new_values.extend(value)
+                            continue
+                    new_values.append(value)
+                old_value[:] = new_values
+            elif isinstance(old_value, AST):
+                new_node = self.visit(old_value)
+                if new_node is None:
+                    delattr(node, field)
+                else:
+                    setattr(node, field, new_node)
         return node

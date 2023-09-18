@@ -255,9 +255,10 @@ EqualsBool = Iff
 
 
 # List Utils
-@dataclass(frozen=True)
+@dataclass()
 class EmptyList(AST):
     sample_value: uplc_ast.Constant
+    _fields = []
 
     def compile(self) -> uplc_ast.AST:
         return uplc_ast.BuiltinList([], self.sample_value)

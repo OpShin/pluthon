@@ -3,7 +3,7 @@ from typing import Type
 
 from .. import PVar, PLambda, PLet
 from ..pluthon_ast import Pattern, Program, Apply
-from ..util import NodeTransformer, NodeVisitor
+from ..util import NodeTransformer, NodeVisitor, iter_fields
 
 
 class PatternCollector(NodeVisitor):
@@ -42,16 +42,7 @@ class PatternReplacer(NodeTransformer):
             pattern_var = PVar(make_abstract_function_name(type(node)))
             node = Apply(
                 pattern_var,
-                *(
-                    getattr(
-                        pattern,
-                        f.name,
-                        f.default
-                        if f.default != dataclasses.MISSING
-                        else f.default_factory(),
-                    )
-                    for f in dataclasses.fields(pattern)
-                ),
+                *(field for _, field in iter_fields(node)),
             )
         method = "visit_" + node.__class__.__name__
         visitor = getattr(self, method, self.generic_visit)
