@@ -1,6 +1,7 @@
 import dataclasses
 import uuid
 from collections import defaultdict
+from functools import lru_cache
 from typing import Type
 from graphlib import TopologicalSorter
 
@@ -48,6 +49,7 @@ class ConditionallyEvaluatedVariableCollector(NodeVisitor):
         )
 
 
+@lru_cache()
 def conditionally_evaluated_params(pattern_class: Type[Pattern]):
     """
     taint analysis to figure out if parameters to a pattern are involved conditionally -> if so, we need to wrap them in a delay
@@ -122,6 +124,7 @@ class PatternDepBuilder(NodeVisitor):
         return res
 
 
+@lru_cache()
 def make_abstract_function(pattern_class: Type[Pattern]):
     fields = dataclasses.fields(pattern_class)
     cep = conditionally_evaluated_params(pattern_class)
