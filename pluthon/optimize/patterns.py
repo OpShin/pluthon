@@ -58,7 +58,7 @@ class PatternReplacer(NodeTransformer):
                     make_abstract_function_name(pattern_class),
                     self.visit(make_abstract_function(pattern_class)),
                 )
-                for i, pattern_class in enumerate(pattern_classes)
+                for pattern_class in pattern_classes
             ],
             self.visit(node.prog),
         )
