@@ -1,5 +1,7 @@
 import dataclasses
+from collections import defaultdict
 from typing import Type
+from graphlib import TopologicalSorter
 
 from .. import PVar, PLambda, PLet
 from ..pluthon_ast import Pattern, Program, Apply
@@ -8,26 +10,52 @@ from ..util import NodeTransformer, NodeVisitor, iter_fields
 
 class PatternCollector(NodeVisitor):
     def __init__(self):
-        self.pattern_classes = set()
-        self.pattern_classes_in_dep_order = list()
+        self.patterns = set()
 
     def visit(self, node):
         """Visit a node."""
-        added_patterns = []
-        while isinstance(node, Pattern):
+        if isinstance(node, Pattern):
             # Patterns are special
             # we collect them here and later add them in reverse order
             # after subpatterns are added recursively
             # this ensures that the outermost pattern is added last
             node_type = type(node)
-            if node_type not in self.pattern_classes:
-                added_patterns.append(node_type)
-            self.pattern_classes.add(node_type)
-            node = node.compose()
-        method = "visit_" + node.__class__.__name__
-        visitor = getattr(self, method, self.generic_visit)
-        res = visitor(node)
-        self.pattern_classes_in_dep_order.extend(reversed(added_patterns))
+            self.patterns.add(node_type)
+            res = self.visit(node.compose())
+        else:
+            method = "visit_" + node.__class__.__name__
+            visitor = getattr(self, method, self.generic_visit)
+            res = visitor(node)
+        return res
+
+
+class PatternDepBuilder(NodeVisitor):
+    def __init__(self):
+        self.pattern_deps = defaultdict(set)
+
+    def patterns_in_dep_order(self):
+        ts = TopologicalSorter(self.pattern_deps)
+        return ts.static_order()
+
+    def visit(self, node):
+        """Visit a node."""
+        if isinstance(node, Pattern):
+            # Patterns are special
+            # we collect them here and later add them in reverse order
+            # after subpatterns are added recursively
+            # this ensures that the outermost pattern is added last
+            node_type = type(node)
+            # compose but without actual variables to avoid collecting patterns that are passed into the pattern
+            composed = make_abstract_function(node_type)
+            subpattern_collector = PatternCollector()
+            subpattern_collector.visit(composed)
+            subpatterns = subpattern_collector.patterns
+            self.pattern_deps[node_type].update(subpatterns)
+            res = self.visit(node.compose())
+        else:
+            method = "visit_" + node.__class__.__name__
+            visitor = getattr(self, method, self.generic_visit)
+            res = visitor(node)
         return res
 
 
@@ -65,9 +93,9 @@ class PatternReplacer(NodeTransformer):
         return visitor(node)
 
     def visit_Program(self, node: Program):
-        pattern_collector = PatternCollector()
+        pattern_collector = PatternDepBuilder()
         pattern_collector.visit(node)
-        pattern_classes = pattern_collector.pattern_classes_in_dep_order
+        pattern_classes = pattern_collector.patterns_in_dep_order()
         # TODO should we not somehow figure out interdependencies here
         term = PLet(
             [
