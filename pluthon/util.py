@@ -128,3 +128,9 @@ class NodeTransformer(NodeVisitor):
                 else:
                     setattr(node, field, new_node)
         return node
+
+
+class NoOp(NodeTransformer):
+    """A variation of the Node transformer that performs no changes"""
+
+    pass
