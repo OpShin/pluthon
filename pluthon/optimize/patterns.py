@@ -1,11 +1,75 @@
 import dataclasses
+import uuid
 from collections import defaultdict
 from typing import Type
 from graphlib import TopologicalSorter
 
-from .. import PVar, PLambda, PLet
-from ..pluthon_ast import Pattern, Program, Apply, Force, Delay
+from .. import PVar, PLambda, PLet, Ite
+from ..pluthon_ast import Pattern, Program, Apply, Force, Delay, Var, Lambda
 from ..util import NodeTransformer, NodeVisitor, iter_fields
+
+
+class EvaluatedVariableCollector(NodeVisitor):
+    def __init__(self):
+        self.evaluated_variables = set()
+
+    def visit_Var(self, node: Var):
+        self.evaluated_variables.add(node.name)
+
+
+class ConditionallyEvaluatedVariableCollector(NodeVisitor):
+    def __init__(self):
+        self.conditionally_evaluated_variables = set()
+
+    def visit_Ite(self, node: Ite):
+        then_branch_evaluated_variables_collector = EvaluatedVariableCollector()
+        then_branch_evaluated_variables_collector.visit(node.t)
+        self.conditionally_evaluated_variables.update(
+            then_branch_evaluated_variables_collector.evaluated_variables
+        )
+        else_branch_evaluated_variables_collector = EvaluatedVariableCollector()
+        else_branch_evaluated_variables_collector.visit(node.e)
+        self.conditionally_evaluated_variables.update(
+            else_branch_evaluated_variables_collector.evaluated_variables
+        )
+
+    def visit_Delay(self, node: Delay):
+        evaluated_variables_collector = EvaluatedVariableCollector()
+        evaluated_variables_collector.visit(node.x)
+        self.conditionally_evaluated_variables.update(
+            evaluated_variables_collector.evaluated_variables
+        )
+
+    def visit_Lambda(self, node: Lambda):
+        evaluated_variables_collector = EvaluatedVariableCollector()
+        evaluated_variables_collector.visit(node.term)
+        self.conditionally_evaluated_variables.update(
+            evaluated_variables_collector.evaluated_variables
+        )
+
+
+def conditionally_evaluated_params(pattern_class: Type[Pattern]):
+    """
+    taint analysis to figure out if parameters to a pattern are involved conditionally -> if so, we need to wrap them in a delay
+    """
+    # we generate unique identifiers for all parameters of the pattern
+    # to detect which of them are used conditionally
+    fields = dataclasses.fields(pattern_class)
+    uuid_map = {f.name: PVar(f"{f.name}_{uuid.uuid4().hex}").name for f in fields}
+    if fields:
+        term = pattern_class(*[Var(uuid_map[f.name]) for f in fields]).compose()
+    else:
+        term = pattern_class().compose()
+    conditionally_evaluated_variables_collector = (
+        ConditionallyEvaluatedVariableCollector()
+    )
+    conditionally_evaluated_variables_collector.visit(term)
+    return {
+        f.name
+        for f in fields
+        if uuid_map[f.name]
+        in conditionally_evaluated_variables_collector.conditionally_evaluated_variables
+    }
 
 
 class PatternCollector(NodeVisitor):
@@ -60,10 +124,16 @@ class PatternDepBuilder(NodeVisitor):
 
 def make_abstract_function(pattern_class: Type[Pattern]):
     fields = dataclasses.fields(pattern_class)
+    cep = conditionally_evaluated_params(pattern_class)
     if fields:
         return PLambda(
             [f.name for f in fields],
-            pattern_class(*[Force(PVar(f.name)) for f in fields]).compose(),
+            pattern_class(
+                *[
+                    Force(PVar(f.name)) if f.name in cep else PVar(f.name)
+                    for f in fields
+                ]
+            ).compose(),
         )
     else:
         return pattern_class().compose()
@@ -80,10 +150,14 @@ class PatternReplacer(NodeTransformer):
             # Patterns are special
             pattern_var = PVar(make_abstract_function_name(type(node)))
             fields = list(iter_fields(node))
+            cep = conditionally_evaluated_params(type(node))
             if fields:
                 node = Apply(
                     pattern_var,
-                    *(Delay(field) for _, field in iter_fields(node)),
+                    *(
+                        Delay(field) if name in cep else field
+                        for name, field in iter_fields(node)
+                    ),
                 )
             else:
                 node = pattern_var
