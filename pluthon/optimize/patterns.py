@@ -52,6 +52,7 @@ class PatternReplacer(NodeTransformer):
         pattern_collector = PatternCollector()
         pattern_collector.visit(node)
         pattern_classes = pattern_collector.pattern_classes
+        # TODO should we not somehow figure out interdependencies here
         term = PLet(
             [
                 (
