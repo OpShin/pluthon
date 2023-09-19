@@ -24,7 +24,11 @@ setup(
     url=pluthon.__url__,
     py_modules=["uplc"],
     packages=find_packages(),
-    install_requires=["uplc>=0.6.2", "uplc<0.7.0"],
+    install_requires=[
+        "uplc>=0.6.2",
+        "uplc<0.7.0",
+        "graphlib-backport>=1.0.0;python_version<3.9",
+    ],
     long_description=long_description,
     long_description_content_type="text/markdown",
     license=pluthon.__license__,
