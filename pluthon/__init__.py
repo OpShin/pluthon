@@ -7,13 +7,14 @@ try:
     from .pluthon_ast import *
     from .pluthon_sugar import *
     from .pluthon_functional_data import *
+    from .tools import *
 except ImportError as e:
     logging.error(
         "Error, trying to import dependencies. Should only occur upon package installation",
         exc_info=e,
     )
 
-VERSION = (0, 3, 9)
+VERSION = (0, 4, 0)
 
 __version__ = ".".join([str(i) for i in VERSION])
 __author__ = "nielstron"
