@@ -4,6 +4,7 @@ import typing
 from uplc import ast as uplc_ast, eval as uplc_eval
 
 
+@dataclass
 class AST:
     def compile(self) -> uplc_ast.AST:
         raise NotImplementedError()
@@ -191,6 +192,7 @@ class Error(AST):
 
 @dataclass
 class Let(AST):
+    # NOTE: visitor needs to take care to correctly visit the bindings
     bindings: typing.List[typing.Tuple[str, AST]]
     term: AST
 
@@ -236,3 +238,18 @@ class Ite(AST):
 
     def dumps(self) -> str:
         return f"(if {self.i.dumps()} then {self.t.dumps()} else {self.e.dumps()})"
+
+
+@dataclass
+class Pattern(AST):
+    """Marks a more abstract pattern that can be shrinked by the compiler by reusage"""
+
+    def compose(self):
+        """Composes the variables to a pluto pattern"""
+        raise NotImplementedError()
+
+    def compile(self):
+        return self.compose().compile()
+
+    def dumps(self) -> str:
+        return self.compose().dumps()

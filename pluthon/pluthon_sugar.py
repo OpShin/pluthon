@@ -1,4 +1,5 @@
 from .pluthon_ast import *
+from dataclasses import field
 
 ########## Pluto Abstractions that simplify handling complex structures ####################
 
@@ -30,35 +31,68 @@ def PLet(bindings: typing.List[typing.Tuple[str, AST]], term: AST):
     return Let([(name_scheme_compatible_varname(x), y) for x, y in bindings], term)
 
 
-def RecFun(x: AST):
-    return PLet(
-        [("g", x)],
-        Apply(PVar("g"), PVar("g")),
-    )
+@dataclass
+class RecFun(Pattern):
+    x: AST
+
+    def compose(self):
+        return PLet(
+            [("g", self.x)],
+            Apply(PVar("g"), PVar("g")),
+        )
 
 
-def Not(x: AST):
-    return IfThenElse(x, Bool(False), Bool(True))
+@dataclass
+class Not(Pattern):
+    x: AST
+
+    def compose(self):
+        return IfThenElse(self.x, Bool(False), Bool(True))
 
 
-def Iff(x: AST, y: AST):
-    return PLet([("y", y)], Ite(x, PVar("y"), Not(PVar("y"))))
+@dataclass
+class Iff(Pattern):
+    x: AST
+    y: AST
+
+    def compose(self):
+        return PLet([("y", self.y)], Ite(self.x, PVar("y"), Not(PVar("y"))))
 
 
-def And(x: AST, y: AST):
-    return Ite(x, y, Bool(False))
+@dataclass
+class And(Pattern):
+    x: AST
+    y: AST
+
+    def compose(self):
+        return Ite(self.x, self.y, Bool(False))
 
 
-def Or(x: AST, y: AST):
-    return Ite(x, Bool(True), y)
+@dataclass
+class Or(Pattern):
+    x: AST
+    y: AST
+
+    def compose(self):
+        return Ite(self.x, Bool(True), self.y)
 
 
-def Xor(x: AST, y: AST):
-    return PLet([("y", y)], Ite(x, Not(PVar("y")), PVar("y")))
+@dataclass
+class Xor(Pattern):
+    x: AST
+    y: AST
+
+    def compose(self):
+        return PLet([("y", self.y)], Ite(self.x, Not(PVar("y")), PVar("y")))
 
 
-def Implies(x: AST, y: AST):
-    return Ite(x, y, Bool(True))
+@dataclass
+class Implies(Pattern):
+    x: AST
+    y: AST
+
+    def compose(self):
+        return Ite(self.x, self.y, Bool(True))
 
 
 def wrap_builtin_binop(b: uplc_ast.BuiltInFun):
@@ -200,20 +234,31 @@ TraceConst = lambda x, y: Trace(Text(x), y)
 TraceError = lambda x: Apply(Error(), Trace(Text(x), Unit()))
 
 
-def NotEqualsInteger(a: AST, b: AST):
-    return Not(EqualsInteger(a, b))
+@dataclass
+class NotEqualsInteger(Pattern):
+    a: AST
+    b: AST
+
+    def compose(self):
+        return Not(EqualsInteger(self.a, self.b))
 
 
-def Negate(a: AST):
-    return SubtractInteger(Integer(0), a)
+@dataclass
+class Negate(Pattern):
+    a: AST
+
+    def compose(self):
+        return SubtractInteger(Integer(0), self.a)
 
 
 EqualsBool = Iff
 
+
 # List Utils
-@dataclass(frozen=True)
+@dataclass()
 class EmptyList(AST):
     sample_value: uplc_ast.Constant
+    _fields = []
 
     def compile(self) -> uplc_ast.AST:
         return uplc_ast.BuiltinList([], self.sample_value)
@@ -269,7 +314,8 @@ def EmptyDataPairList():
 
 
 def IteNullList(l: AST, i: AST, e: AST):
-    # Ite based on whether a list is empty or not, choose over Ite(NullList(l), i, e) for performance reasons
+    """Ite based on whether a list is empty or not, choose over Ite(NullList(l), i, e) for performance reasons"""
+    # Careful: can not patternize due to use of delay/force
     return Force(
         ChooseList(
             l,
@@ -283,209 +329,182 @@ def IteNullList(l: AST, i: AST, e: AST):
 PrependList = MkCons
 
 
-def SingleDataList(x: AST):
-    return PrependList(x, EmptyDataList())
+@dataclass
+class SingleDataList(Pattern):
+    x: AST
+
+    def compose(self):
+        return PrependList(self.x, EmptyDataList())
 
 
-def SingleDataPairList(x: AST):
-    return PrependList(x, EmptyDataPairList())
+@dataclass
+class SingleDataPairList(Pattern):
+    x: AST
+
+    def compose(self):
+        return PrependList(self.x, EmptyDataPairList())
 
 
-def FoldList(l: AST, f: AST, a: AST):
+@dataclass
+class FoldList(Pattern):
     """Left fold over a list l operator f: accumulator -> list_elem -> accumulator with initial value a"""
-    return Apply(
-        PLambda(
-            ["op"],
-            RecFun(
-                PLambda(
-                    ["fold", "xs", "a"],
-                    IteNullList(
-                        PVar("xs"),
-                        PVar("a"),
-                        Apply(
-                            PVar("fold"),
-                            PVar("fold"),
-                            TailList(PVar("xs")),
-                            Apply(PVar("op"), PVar("a"), HeadList(PVar("xs"))),
-                        ),
-                    ),
-                ),
-            ),
-        ),
-        f,
-        l,
-        a,
-    )
 
+    l: AST
+    f: AST
+    a: AST
 
-def RFoldList(l: AST, f: AST, a: AST):
-    """Right fold over a list l operator f: accumulator -> list_elem -> accumulator with initial value a"""
-    return Apply(
-        PLambda(
-            ["op"],
-            RecFun(
-                PLambda(
-                    ["fold", "xs", "a"],
-                    IteNullList(
-                        PVar("xs"),
-                        PVar("a"),
-                        Apply(
-                            PVar("op"),
-                            Apply(
-                                PVar("fold"),
-                                PVar("fold"),
-                                TailList(PVar("xs")),
-                                PVar("a"),
-                            ),
-                            HeadList(PVar("xs")),
-                        ),
-                    ),
-                ),
-            ),
-        ),
-        f,
-        l,
-        a,
-    )
-
-
-def IndexAccessList(l: AST, i: AST):
-    return Apply(
-        RecFun(
+    def compose(self):
+        return Apply(
             PLambda(
-                ["f", "i", "xs"],
-                IteNullList(
-                    PVar("xs"),
-                    TraceError("IndexError"),
-                    Ite(
-                        EqualsInteger(PVar("i"), Integer(0)),
-                        HeadList(PVar("xs")),
-                        Apply(
-                            PVar("f"),
-                            PVar("f"),
-                            SubtractInteger(PVar("i"), Integer(1)),
-                            TailList(PVar("xs")),
-                        ),
-                    ),
-                ),
-            ),
-        ),
-        i,
-        l,
-    )
-
-
-def Range(limit: AST, start: AST = Integer(0), step: AST = Integer(1)):
-    return Apply(
-        PLambda(
-            ["limit", "step"],
-            RecFun(
-                PLambda(
-                    ["f", "cur"],
-                    Ite(
-                        LessThanInteger(PVar("cur"), PVar("limit")),
-                        PrependList(
-                            PVar("cur"),
+                ["op"],
+                RecFun(
+                    PLambda(
+                        ["fold", "xs", "a"],
+                        IteNullList(
+                            PVar("xs"),
+                            PVar("a"),
                             Apply(
-                                PVar("f"),
-                                PVar("f"),
-                                AddInteger(PVar("cur"), PVar("step")),
-                            ),
-                        ),
-                        EmptyIntegerList(),
-                    ),
-                )
-            ),
-        ),
-        limit,
-        step,
-        start,
-    )
-
-
-def MapList(l: AST, m: AST = PLambda(["x"], PVar("x")), empty_list=EmptyDataList()):
-    """Apply a map function on each element in a list"""
-    return Apply(
-        PLambda(
-            ["op"],
-            RecFun(
-                PLambda(
-                    ["map", "xs"],
-                    IteNullList(
-                        PVar("xs"),
-                        empty_list,
-                        PrependList(
-                            Apply(PVar("op"), HeadList(PVar("xs"))),
-                            Apply(
-                                PVar("map"),
-                                PVar("map"),
+                                PVar("fold"),
+                                PVar("fold"),
                                 TailList(PVar("xs")),
+                                Apply(PVar("op"), PVar("a"), HeadList(PVar("xs"))),
                             ),
                         ),
                     ),
                 ),
             ),
-        ),
-        m,
-        l,
-    )
+            self.f,
+            self.l,
+            self.a,
+        )
 
 
-def FindList(l: AST, key: AST, default: AST):
-    """Returns the first element in the list where key evaluates to true - otherwise returns default"""
-    return Apply(
-        PLambda(
-            ["op"],
+@dataclass
+class RFoldList(Pattern):
+    """Right fold over a list l operator f: accumulator -> list_elem -> accumulator with initial value a"""
+
+    l: AST
+    f: AST
+    a: AST
+
+    def compose(self):
+        return Apply(
+            PLambda(
+                ["op"],
+                RecFun(
+                    PLambda(
+                        ["fold", "xs", "a"],
+                        IteNullList(
+                            PVar("xs"),
+                            PVar("a"),
+                            Apply(
+                                PVar("op"),
+                                Apply(
+                                    PVar("fold"),
+                                    PVar("fold"),
+                                    TailList(PVar("xs")),
+                                    PVar("a"),
+                                ),
+                                HeadList(PVar("xs")),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            self.f,
+            self.l,
+            self.a,
+        )
+
+
+@dataclass
+class IndexAccessList(Pattern):
+    l: AST
+    i: AST
+
+    def compose(self):
+        return Apply(
             RecFun(
                 PLambda(
-                    ["f", "xs"],
+                    ["f", "i", "xs"],
                     IteNullList(
                         PVar("xs"),
-                        default,
+                        TraceError("IndexError"),
                         Ite(
-                            Apply(PVar("op"), HeadList(PVar("xs"))),
+                            EqualsInteger(PVar("i"), Integer(0)),
                             HeadList(PVar("xs")),
                             Apply(
                                 PVar("f"),
                                 PVar("f"),
+                                SubtractInteger(PVar("i"), Integer(1)),
                                 TailList(PVar("xs")),
                             ),
                         ),
                     ),
                 ),
             ),
-        ),
-        key,
-        l,
-    )
+            self.i,
+            self.l,
+        )
 
 
-def FilterList(l: AST, k: AST, empty_list=EmptyDataList()):
-    """Apply a filter function on each element in a list (throws out all that evaluate to false)"""
-    return Apply(
-        PLambda(
-            ["op"],
-            RecFun(
-                PLambda(
-                    ["filter", "xs"],
-                    IteNullList(
-                        PVar("xs"),
-                        empty_list,
-                        PLet(
-                            [("head", HeadList(PVar("xs")))],
-                            Ite(
-                                Apply(PVar("op"), PVar("head")),
-                                PrependList(
-                                    PVar("head"),
-                                    Apply(
-                                        PVar("filter"),
-                                        PVar("filter"),
-                                        TailList(PVar("xs")),
-                                    ),
-                                ),
+@dataclass
+class Range(Pattern):
+    limit: AST
+    start: AST = field(default_factory=lambda: Integer(0))
+    step: AST = field(default_factory=lambda: Integer(1))
+
+    def compose(self):
+        return Apply(
+            PLambda(
+                ["limit", "step"],
+                RecFun(
+                    PLambda(
+                        ["f", "cur"],
+                        Ite(
+                            LessThanInteger(PVar("cur"), PVar("limit")),
+                            PrependList(
+                                PVar("cur"),
                                 Apply(
-                                    PVar("filter"),
-                                    PVar("filter"),
+                                    PVar("f"),
+                                    PVar("f"),
+                                    AddInteger(PVar("cur"), PVar("step")),
+                                ),
+                            ),
+                            EmptyIntegerList(),
+                        ),
+                    )
+                ),
+            ),
+            self.limit,
+            self.step,
+            self.start,
+        )
+
+
+@dataclass
+class MapList(Pattern):
+    """Apply a map function on each element in a list"""
+
+    l: AST
+    m: AST = field(default_factory=lambda: PLambda(["x"], PVar("x")))
+    empty_list: AST = field(default_factory=EmptyDataList)
+
+    def compose(self):
+        return Apply(
+            PLambda(
+                ["op"],
+                RecFun(
+                    PLambda(
+                        ["map", "xs"],
+                        IteNullList(
+                            PVar("xs"),
+                            self.empty_list,
+                            PrependList(
+                                Apply(PVar("op"), HeadList(PVar("xs"))),
+                                Apply(
+                                    PVar("map"),
+                                    PVar("map"),
                                     TailList(PVar("xs")),
                                 ),
                             ),
@@ -493,83 +512,195 @@ def FilterList(l: AST, k: AST, empty_list=EmptyDataList()):
                     ),
                 ),
             ),
-        ),
-        k,
-        l,
-    )
+            self.m,
+            self.l,
+        )
 
 
-def MapFilterList(l: AST, filter_op: AST, map_op: AST, empty_list=EmptyDataList()):
+@dataclass
+class FindList(Pattern):
+    """Returns the first element in the list where key evaluates to true - otherwise returns default"""
+
+    l: AST
+    key: AST
+    default: AST
+
+    def compose(self):
+        return Apply(
+            PLambda(
+                ["op"],
+                RecFun(
+                    PLambda(
+                        ["f", "xs"],
+                        IteNullList(
+                            PVar("xs"),
+                            self.default,
+                            Ite(
+                                Apply(PVar("op"), HeadList(PVar("xs"))),
+                                HeadList(PVar("xs")),
+                                Apply(
+                                    PVar("f"),
+                                    PVar("f"),
+                                    TailList(PVar("xs")),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            self.key,
+            self.l,
+        )
+
+
+@dataclass
+class FilterList(Pattern):
+    """Apply a filter function on each element in a list (throws out all that evaluate to false)"""
+
+    l: AST
+    k: AST
+    empty_list: AST = field(default_factory=EmptyDataList)
+
+    def compose(self):
+        return Apply(
+            PLambda(
+                ["op"],
+                RecFun(
+                    PLambda(
+                        ["filter", "xs"],
+                        IteNullList(
+                            PVar("xs"),
+                            self.empty_list,
+                            PLet(
+                                [("head", HeadList(PVar("xs")))],
+                                Ite(
+                                    Apply(PVar("op"), PVar("head")),
+                                    PrependList(
+                                        PVar("head"),
+                                        Apply(
+                                            PVar("filter"),
+                                            PVar("filter"),
+                                            TailList(PVar("xs")),
+                                        ),
+                                    ),
+                                    Apply(
+                                        PVar("filter"),
+                                        PVar("filter"),
+                                        TailList(PVar("xs")),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            self.k,
+            self.l,
+        )
+
+
+@dataclass
+class MapFilterList(Pattern):
     """
     Apply a filter and a map function on each element in a list (throws out all that evaluate to false)
     Performs only a single pass and is hence much more efficient than filter + map
     """
-    return Apply(
-        PLambda(
-            ["filter", "map"],
-            RecFun(
-                PLambda(
-                    ["filtermap", "xs"],
-                    IteNullList(
-                        PVar("xs"),
-                        empty_list,
-                        PLet(
-                            [("head", HeadList(PVar("xs")))],
-                            Ite(
-                                Apply(PVar("filter"), PVar("head")),
-                                PrependList(
-                                    Apply(PVar("map"), PVar("head")),
+
+    l: AST
+    filter_op: AST
+    map_op: AST
+    empty_list: AST = field(default_factory=EmptyDataList)
+
+    def compose(self):
+        return Apply(
+            PLambda(
+                ["filter", "map"],
+                RecFun(
+                    PLambda(
+                        ["filtermap", "xs"],
+                        IteNullList(
+                            PVar("xs"),
+                            self.empty_list,
+                            PLet(
+                                [("head", HeadList(PVar("xs")))],
+                                Ite(
+                                    Apply(PVar("filter"), PVar("head")),
+                                    PrependList(
+                                        Apply(PVar("map"), PVar("head")),
+                                        Apply(
+                                            PVar("filtermap"),
+                                            PVar("filtermap"),
+                                            TailList(PVar("xs")),
+                                        ),
+                                    ),
                                     Apply(
                                         PVar("filtermap"),
                                         PVar("filtermap"),
                                         TailList(PVar("xs")),
                                     ),
                                 ),
-                                Apply(
-                                    PVar("filtermap"),
-                                    PVar("filtermap"),
-                                    TailList(PVar("xs")),
-                                ),
                             ),
                         ),
                     ),
                 ),
             ),
-        ),
-        filter_op,
-        map_op,
-        l,
-    )
+            self.filter_op,
+            self.map_op,
+            self.l,
+        )
 
 
-def LengthList(l: AST):
-    return FoldList(
-        l, PLambda(["a", "_"], AddInteger(PVar("a"), Integer(1))), Integer(0)
-    )
+@dataclass
+class LengthList(Pattern):
+    l: AST
+
+    def compose(self):
+        return FoldList(
+            self.l, PLambda(["a", "_"], AddInteger(PVar("a"), Integer(1))), Integer(0)
+        )
 
 
 # Data Utils
 
 
-def Constructor(d: AST):
-    return FstPair(UnConstrData(d))
+@dataclass
+class Constructor(Pattern):
+    d: AST
+
+    def compose(self):
+        return FstPair(UnConstrData(self.d))
 
 
-def Fields(d: AST):
-    return SndPair(UnConstrData(d))
+@dataclass
+class Fields(Pattern):
+    d: AST
+
+    def compose(self):
+        return SndPair(UnConstrData(self.d))
 
 
-def NthField(d: AST, n: AST):
-    return IndexAccessList(Fields(d), n)
+@dataclass
+class NthField(Pattern):
+    d: AST
+    n: AST
+
+    def compose(self):
+        return IndexAccessList(Fields(self.d), self.n)
 
 
-def NoneData():
-    return ConstrData(Integer(0), EmptyDataList())
+@dataclass
+class NoneData(Pattern):
+    def compose(self):
+        return ConstrData(Integer(0), EmptyDataList())
 
 
-def SomeData(x: AST):
+@dataclass
+class SomeData(Pattern):
+    x: AST
     # Note: x must be of type data!
-    return ConstrData(Integer(1), SingleDataList(x))
+
+    def compose(self):
+        return ConstrData(Integer(1), SingleDataList(self.x))
 
 
 # Choose Utils
@@ -583,6 +714,7 @@ def DelayedChooseData(
     int_branch: AST,
     bytestring_branch: AST,
 ):
+    # Careful: cannot patternize because of delay/force
     return Force(
         ChooseData(
             d,
