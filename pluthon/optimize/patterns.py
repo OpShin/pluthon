@@ -1,9 +1,10 @@
 import dataclasses
 import uuid
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from functools import lru_cache
 from typing import Type
 from graphlib import TopologicalSorter
+from ordered_set import OrderedSet
 
 from .. import PVar, PLambda, PLet, Ite
 from ..pluthon_ast import Pattern, Program, Apply, Force, Delay, Var, Lambda
@@ -12,7 +13,7 @@ from ..util import NodeTransformer, NodeVisitor, iter_fields
 
 class EvaluatedVariableCollector(NodeVisitor):
     def __init__(self):
-        self.evaluated_variables = set()
+        self.evaluated_variables = OrderedSet()
 
     def visit_Var(self, node: Var):
         self.evaluated_variables.add(node.name)
@@ -20,7 +21,7 @@ class EvaluatedVariableCollector(NodeVisitor):
 
 class ConditionallyEvaluatedVariableCollector(NodeVisitor):
     def __init__(self):
-        self.conditionally_evaluated_variables = set()
+        self.conditionally_evaluated_variables = OrderedSet()
 
     def visit_Ite(self, node: Ite):
         then_branch_evaluated_variables_collector = EvaluatedVariableCollector()
@@ -76,7 +77,7 @@ def conditionally_evaluated_params(pattern_class: Type[Pattern]):
 
 class PatternCollector(NodeVisitor):
     def __init__(self):
-        self.patterns = OrderedDict()
+        self.patterns = dict()
 
     def visit(self, node):
         """Visit a node."""
@@ -97,7 +98,7 @@ class PatternCollector(NodeVisitor):
 
 class PatternDepBuilder(NodeVisitor):
     def __init__(self):
-        self.pattern_deps = OrderedDict()
+        self.pattern_deps = dict()
 
     def patterns_in_dep_order(self):
         ts = TopologicalSorter(self.pattern_deps)
@@ -115,7 +116,7 @@ class PatternDepBuilder(NodeVisitor):
             subpattern_collector = PatternCollector()
             subpattern_collector.visit(make_abstract_function(node_type))
             subpatterns = subpattern_collector.patterns
-            self.pattern_deps.setdefault(node_type, OrderedDict()).update(subpatterns)
+            self.pattern_deps.setdefault(node_type, OrderedSet()).update(subpatterns)
             res = self.visit(node.compose())
         else:
             method = "visit_" + node.__class__.__name__

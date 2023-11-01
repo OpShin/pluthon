@@ -28,6 +28,8 @@ setup(
         "uplc>=0.6.2",
         "uplc<0.7.0",
         'graphlib-backport>=1.0.0; python_version<"3.9"',
+        "ordered-set>=4.1.0",
+        "ordered-set<5.0.0",
     ],
     long_description=long_description,
     long_description_content_type="text/markdown",
