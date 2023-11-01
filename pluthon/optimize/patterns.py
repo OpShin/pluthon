@@ -1,6 +1,6 @@
 import dataclasses
 import uuid
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from functools import lru_cache
 from typing import Type
 from graphlib import TopologicalSorter
@@ -76,7 +76,7 @@ def conditionally_evaluated_params(pattern_class: Type[Pattern]):
 
 class PatternCollector(NodeVisitor):
     def __init__(self):
-        self.patterns = set()
+        self.patterns = OrderedDict()
 
     def visit(self, node):
         """Visit a node."""
@@ -86,7 +86,7 @@ class PatternCollector(NodeVisitor):
             # after subpatterns are added recursively
             # this ensures that the outermost pattern is added last
             node_type = type(node)
-            self.patterns.add(node_type)
+            self.patterns[node_type] = None
             res = self.visit(node.compose())
         else:
             method = "visit_" + node.__class__.__name__
@@ -97,7 +97,7 @@ class PatternCollector(NodeVisitor):
 
 class PatternDepBuilder(NodeVisitor):
     def __init__(self):
-        self.pattern_deps = defaultdict(set)
+        self.pattern_deps = OrderedDict()
 
     def patterns_in_dep_order(self):
         ts = TopologicalSorter(self.pattern_deps)
@@ -115,7 +115,7 @@ class PatternDepBuilder(NodeVisitor):
             subpattern_collector = PatternCollector()
             subpattern_collector.visit(make_abstract_function(node_type))
             subpatterns = subpattern_collector.patterns
-            self.pattern_deps[node_type].update(subpatterns)
+            self.pattern_deps.setdefault(node_type, OrderedDict()).update(subpatterns)
             res = self.visit(node.compose())
         else:
             method = "visit_" + node.__class__.__name__
