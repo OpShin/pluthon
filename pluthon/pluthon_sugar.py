@@ -419,13 +419,13 @@ class RFoldList(Pattern):
         )
 
 
-CONSTANT_INDEX_ACCESS_PATTERNS = {}
+_CONSTANT_INDEX_ACCESS_PATTERNS = {}
 
 
 def _NthConstantIndexAccessList(i: int):
     if i < 0:
         raise ValueError("Index must be non-negative")
-    if CONSTANT_INDEX_ACCESS_PATTERNS.get(i) is None:
+    if _CONSTANT_INDEX_ACCESS_PATTERNS.get(i) is None:
 
         def assign_vars(self, l: AST):
             self.l = l
@@ -470,8 +470,8 @@ def _NthConstantIndexAccessList(i: int):
             },
         )
         ConstantIndexAccessListPattern = dataclass(ConstantIndexAccessListPattern)
-        CONSTANT_INDEX_ACCESS_PATTERNS[i] = ConstantIndexAccessListPattern
-    return CONSTANT_INDEX_ACCESS_PATTERNS[i]
+        _CONSTANT_INDEX_ACCESS_PATTERNS[i] = ConstantIndexAccessListPattern
+    return _CONSTANT_INDEX_ACCESS_PATTERNS[i]
 
 
 def ConstantIndexAccessList(l: AST, i: int):
@@ -747,6 +747,10 @@ class NthField(Pattern):
 
     def compose(self):
         return IndexAccessList(Fields(self.d), self.n)
+
+
+def ConstantNthField(d: AST, i: int):
+    return ConstantIndexAccessList(Fields(d), i)
 
 
 @dataclass
