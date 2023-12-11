@@ -1,23 +1,36 @@
+from functools import lru_cache
+from hashlib import sha256
+
 from .pluthon_ast import Pattern, Let, AST
 
 from copy import copy
-from dataclasses import fields, MISSING
+from dataclasses import fields, MISSING, dataclass
+
+
+@lru_cache()
+def cached_fields(cls):
+    return fields(cls)
 
 
 def iter_fields(node: AST):
     """
     Yield a tuple of ``(fieldname, value)`` for each field in an AST node
     """
-    for field in fields(node):
-        yield field.name, getattr(
-            node,
+    return [
+        (
             field.name,
-            field.default
-            if field.default is not MISSING
-            else field.default_factory()
-            if field.default_factory is not MISSING
-            else None,
+            getattr(
+                node,
+                field.name,
+                field.default
+                if field.default is not MISSING
+                else field.default_factory()
+                if field.default_factory is not MISSING
+                else None,
+            ),
         )
+        for field in cached_fields(type(node))
+    ]
 
 
 class NodeVisitor(object):
@@ -42,9 +55,6 @@ class NodeVisitor(object):
 
     def visit(self, node):
         """Visit a node."""
-        while isinstance(node, Pattern):
-            # Patterns are special
-            node = node.compose()
         method = "visit_" + node.__class__.__name__
         visitor = getattr(self, method, self.generic_visit)
         return visitor(node)
@@ -100,7 +110,6 @@ class NodeTransformer(NodeVisitor):
     """
 
     def generic_visit(self, node):
-        node = copy(node)
         if isinstance(node, Let):
             node.bindings = [
                 (name, self.visit(binding)) for name, binding in node.bindings

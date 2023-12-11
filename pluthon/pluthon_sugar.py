@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from .pluthon_ast import *
 from dataclasses import field
 
@@ -417,6 +419,65 @@ class RFoldList(Pattern):
         )
 
 
+_CONSTANT_INDEX_ACCESS_PATTERNS = {}
+
+
+def _NthConstantIndexAccessList(i: int):
+    if i < 0:
+        raise ValueError("Index must be non-negative")
+    if _CONSTANT_INDEX_ACCESS_PATTERNS.get(i) is None:
+
+        def assign_vars(self, l: AST):
+            self.l = l
+
+        if i == 0:
+
+            def compose(self):
+                return Apply(
+                    PLambda(
+                        ["xs"],
+                        IteNullList(
+                            PVar("xs"), TraceError("IndexError"), HeadList(PVar("xs"))
+                        ),
+                    ),
+                    self.l,
+                )
+
+        else:
+
+            def compose(self):
+                return _NthConstantIndexAccessList(i - 1)(
+                    Apply(
+                        PLambda(
+                            ["xs"],
+                            IteNullList(
+                                PVar("xs"),
+                                TraceError("IndexError"),
+                                TailList(PVar("xs")),
+                            ),
+                        ),
+                        self.l,
+                    )
+                )
+
+        ConstantIndexAccessListPattern = type(
+            f"ConstantIndexAccessListPattern_{i}",
+            (Pattern,),
+            {
+                "__annotations__": {"l": AST},
+                "__init__": assign_vars,
+                "compose": compose,
+            },
+        )
+        ConstantIndexAccessListPattern = dataclass(ConstantIndexAccessListPattern)
+        _CONSTANT_INDEX_ACCESS_PATTERNS[i] = ConstantIndexAccessListPattern
+    return _CONSTANT_INDEX_ACCESS_PATTERNS[i]
+
+
+def ConstantIndexAccessList(l: AST, i: int):
+    return _NthConstantIndexAccessList(i)(l)
+
+
 @dataclass
 class IndexAccessList(Pattern):
     l: AST
@@ -686,6 +747,10 @@ class NthField(Pattern):
 
     def compose(self):
         return IndexAccessList(Fields(self.d), self.n)
+
+
+def ConstantNthField(d: AST, i: int):
+    return ConstantIndexAccessList(Fields(d), i)
 
 
 @dataclass
