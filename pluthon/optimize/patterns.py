@@ -100,8 +100,12 @@ class PatternCollector(NodeVisitor):
 class PatternDepBuilder(NodeVisitor):
     def __init__(self):
         self.pattern_deps = dict()
+        self.pattern_occurrences = defaultdict(int)
 
     def patterns_in_dep_order(self):
+        """
+        Returns the patterns in dependency order, i.e. the ones that are used in other patterns are defined first
+        """
         ts = TopologicalSorter(self.pattern_deps)
         return ts.static_order()
 
@@ -109,10 +113,8 @@ class PatternDepBuilder(NodeVisitor):
         """Visit a node."""
         if isinstance(node, Pattern):
             # Patterns are special
-            # we collect them here and later add them in reverse order
-            # after subpatterns are added recursively
-            # this ensures that the outermost pattern is added last
             node_type = type(node)
+            self.pattern_occurrences[node_type] += 1
             # compose but without actual variables to avoid collecting patterns that are passed into the pattern
             subpattern_collector = PatternCollector()
             subpattern_collector.visit(make_abstract_function(node_type))
@@ -162,19 +164,22 @@ class OncePatternReplacer(NodeTransformer):
             node, self.unfold_pattern_class
         ):
             # Patterns are special
-            pattern_var = PVar(make_abstract_function_name(type(node)))
-            fields = list(iter_fields(node))
-            cep = conditionally_evaluated_params(type(node))
-            if fields:
-                node = Apply(
-                    pattern_var,
-                    *(
-                        Delay(field) if name in cep else field
-                        for name, field in iter_fields(node)
-                    ),
-                )
+            if self.unfold_pattern_occurrences > 1:
+                pattern_var = PVar(make_abstract_function_name(type(node)))
+                fields = list(iter_fields(node))
+                cep = conditionally_evaluated_params(type(node))
+                if fields:
+                    node = Apply(
+                        pattern_var,
+                        *(
+                            Delay(field) if name in cep else field
+                            for name, field in iter_fields(node)
+                        ),
+                    )
+                else:
+                    node = pattern_var
             else:
-                node = pattern_var
+                node = node.compose()
         method = "visit_" + node.__class__.__name__
         visitor = getattr(self, method, self.generic_visit)
         return visitor(node)
@@ -185,17 +190,27 @@ class OncePatternReplacer(NodeTransformer):
         pattern_classes = list(pattern_collector.patterns_in_dep_order())
         if pattern_classes:
             self.unfold_pattern_class = pattern_classes[-1]
-            term = PLet(
-                [
-                    (
-                        make_abstract_function_name(self.unfold_pattern_class),
-                        self.visit(
-                            deepcopy(make_abstract_function(self.unfold_pattern_class))
+            self.unfold_pattern_occurrences = pattern_collector.pattern_occurrences[
+                self.unfold_pattern_class
+            ]
+            if self.unfold_pattern_occurrences > 1:
+                # if the pattern occurs more than once, we need to define it as a function
+                # otherwise we can just inline it
+                term = PLet(
+                    [
+                        (
+                            make_abstract_function_name(self.unfold_pattern_class),
+                            self.visit(
+                                deepcopy(
+                                    make_abstract_function(self.unfold_pattern_class)
+                                )
+                            ),
                         ),
-                    ),
-                ],
-                self.visit(node.prog),
-            )
+                    ],
+                    self.visit(node.prog),
+                )
+            else:
+                term = self.visit(node.prog)
         else:
             term = self.visit(node.prog)
         self.unfold_pattern_class = None

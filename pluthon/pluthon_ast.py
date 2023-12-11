@@ -252,4 +252,4 @@ class Pattern(AST):
         return self.compose().compile()
 
     def dumps(self) -> str:
-        return self.compose().dumps()
+        return f"<[{self.__class__.__name__}]> {self.compose().dumps()}"
