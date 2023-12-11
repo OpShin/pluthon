@@ -44,9 +44,6 @@ class NodeVisitor(object):
 
     def visit(self, node):
         """Visit a node."""
-        while isinstance(node, Pattern):
-            # Patterns are special
-            node = node.compose()
         method = "visit_" + node.__class__.__name__
         visitor = getattr(self, method, self.generic_visit)
         return visitor(node)

@@ -147,10 +147,19 @@ def make_abstract_function_name(pattern_class: Type[Pattern]):
     return f"p_{pattern_class.__name__}"
 
 
-class PatternReplacer(NodeTransformer):
+class OncePatternReplacer(NodeTransformer):
+    """
+    Replaces the innermost pattern in terms of dependencies, i.e. the one that has to be defined
+    last in topological order
+    """
+
+    unfold_pattern_class = None
+
     def visit(self, node):
         """Visit a node."""
-        if isinstance(node, Pattern):
+        if self.unfold_pattern_class is not None and isinstance(
+            node, self.unfold_pattern_class
+        ):
             # Patterns are special
             pattern_var = PVar(make_abstract_function_name(type(node)))
             fields = list(iter_fields(node))
@@ -172,18 +181,20 @@ class PatternReplacer(NodeTransformer):
     def visit_Program(self, node: Program):
         pattern_collector = PatternDepBuilder()
         pattern_collector.visit(node)
-        pattern_classes = pattern_collector.patterns_in_dep_order()
-        # TODO should we not somehow figure out interdependencies here
-        term = PLet(
-            [
-                (
-                    make_abstract_function_name(pattern_class),
-                    self.visit(make_abstract_function(pattern_class)),
-                )
-                for pattern_class in pattern_classes
-            ],
-            self.visit(node.prog),
-        )
+        pattern_classes = list(pattern_collector.patterns_in_dep_order())
+        if pattern_classes:
+            self.unfold_pattern_class = pattern_classes[-1]
+            term = PLet(
+                [
+                    (
+                        make_abstract_function_name(self.unfold_pattern_class),
+                        self.visit(make_abstract_function(self.unfold_pattern_class)),
+                    ),
+                ],
+                self.visit(node.prog),
+            )
+        else:
+            term = self.visit(node.prog)
         return Program(
             version=node.version,
             prog=term,
