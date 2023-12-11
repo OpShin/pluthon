@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from .pluthon_ast import *
 from dataclasses import field
 
@@ -415,6 +417,31 @@ class RFoldList(Pattern):
             self.l,
             self.a,
         )
+
+
+@dataclass
+class ConstantIndexAccessList(AST):
+    l: AST
+    i: int
+
+    def compile(self):
+        if self.i < 0:
+            raise ValueError("Index must be non-negative")
+        if self.i == 0:
+            return HeadList(self.l)
+        nm1 = ConstantIndexAccessList(
+            Apply(
+                PLambda(
+                    ["xs"],
+                    IteNullList(
+                        PVar("xs"), TraceError("IndexError"), TailList(PVar("xs"))
+                    ),
+                ),
+                self.l,
+            ),
+            self.i - 1,
+        )
+        return nm1.compile()
 
 
 @dataclass
