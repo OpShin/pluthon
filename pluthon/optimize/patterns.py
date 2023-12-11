@@ -1,6 +1,7 @@
 import dataclasses
 import uuid
 from collections import defaultdict
+from copy import deepcopy
 from functools import lru_cache
 from typing import Type
 from graphlib import TopologicalSorter
@@ -188,13 +189,16 @@ class OncePatternReplacer(NodeTransformer):
                 [
                     (
                         make_abstract_function_name(self.unfold_pattern_class),
-                        self.visit(make_abstract_function(self.unfold_pattern_class)),
+                        self.visit(
+                            deepcopy(make_abstract_function(self.unfold_pattern_class))
+                        ),
                     ),
                 ],
                 self.visit(node.prog),
             )
         else:
             term = self.visit(node.prog)
+        self.unfold_pattern_class = None
         return Program(
             version=node.version,
             prog=term,

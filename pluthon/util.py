@@ -99,7 +99,6 @@ class NodeTransformer(NodeVisitor):
     """
 
     def generic_visit(self, node):
-        node = copy(node)
         if isinstance(node, Let):
             node.bindings = [
                 (name, self.visit(binding)) for name, binding in node.bindings
