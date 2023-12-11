@@ -419,29 +419,63 @@ class RFoldList(Pattern):
         )
 
 
-@dataclass
-class ConstantIndexAccessList(AST):
-    l: AST
-    i: int
+CONSTANT_INDEX_ACCESS_PATTERNS = {}
 
-    def compile(self):
-        if self.i < 0:
-            raise ValueError("Index must be non-negative")
-        if self.i == 0:
-            return HeadList(self.l)
-        nm1 = ConstantIndexAccessList(
-            Apply(
-                PLambda(
-                    ["xs"],
-                    IteNullList(
-                        PVar("xs"), TraceError("IndexError"), TailList(PVar("xs"))
+
+def _NthConstantIndexAccessList(i: int):
+    if i < 0:
+        raise ValueError("Index must be non-negative")
+    if CONSTANT_INDEX_ACCESS_PATTERNS.get(i) is None:
+
+        def assign_vars(self, l: AST):
+            self.l = l
+
+        if i == 0:
+
+            def compose(self):
+                return Apply(
+                    PLambda(
+                        ["xs"],
+                        IteNullList(
+                            PVar("xs"), TraceError("IndexError"), HeadList(PVar("xs"))
+                        ),
                     ),
-                ),
-                self.l,
-            ),
-            self.i - 1,
+                    self.l,
+                )
+
+        else:
+
+            def compose(self):
+                return _NthConstantIndexAccessList(i - 1)(
+                    Apply(
+                        PLambda(
+                            ["xs"],
+                            IteNullList(
+                                PVar("xs"),
+                                TraceError("IndexError"),
+                                TailList(PVar("xs")),
+                            ),
+                        ),
+                        self.l,
+                    )
+                )
+
+        ConstantIndexAccessListPattern = type(
+            f"ConstantIndexAccessListPattern_{i}",
+            (Pattern,),
+            {
+                "__annotations__": {"l": AST},
+                "__init__": assign_vars,
+                "compose": compose,
+            },
         )
-        return nm1.compile()
+        ConstantIndexAccessListPattern = dataclass(ConstantIndexAccessListPattern)
+        CONSTANT_INDEX_ACCESS_PATTERNS[i] = ConstantIndexAccessListPattern
+    return CONSTANT_INDEX_ACCESS_PATTERNS[i]
+
+
+def ConstantIndexAccessList(l: AST, i: int):
+    return _NthConstantIndexAccessList(i)(l)
 
 
 @dataclass
