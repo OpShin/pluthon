@@ -1,3 +1,4 @@
+from functools import lru_cache
 from hashlib import sha256
 
 from .pluthon_ast import Pattern, Let, AST
@@ -6,20 +7,30 @@ from copy import copy
 from dataclasses import fields, MISSING, dataclass
 
 
+@lru_cache()
+def cached_fields(cls):
+    return fields(cls)
+
+
 def iter_fields(node: AST):
     """
     Yield a tuple of ``(fieldname, value)`` for each field in an AST node
     """
-    for field in fields(node):
-        yield field.name, getattr(
-            node,
+    return [
+        (
             field.name,
-            field.default
-            if field.default is not MISSING
-            else field.default_factory()
-            if field.default_factory is not MISSING
-            else None,
+            getattr(
+                node,
+                field.name,
+                field.default
+                if field.default is not MISSING
+                else field.default_factory()
+                if field.default_factory is not MISSING
+                else None,
+            ),
         )
+        for field in cached_fields(type(node))
+    ]
 
 
 class NodeVisitor(object):
