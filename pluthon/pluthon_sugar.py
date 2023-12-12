@@ -510,6 +510,50 @@ class IndexAccessList(Pattern):
 
 
 @dataclass
+class UnsafeConstantIndexAccessList(AST):
+    l: AST
+    i: int
+
+    def compile(self):
+        if self.i < 0:
+            raise ValueError("Index must be non-negative")
+        if self.i == 0:
+            return HeadList(self.l)
+        nm1 = ConstantIndexAccessList(
+            TailList(self.l),
+            self.i - 1,
+        )
+        return nm1.compile()
+
+
+@dataclass
+class UnsafeIndexAccessList(Pattern):
+    l: AST
+    i: AST
+
+    def compose(self):
+        return Apply(
+            RecFun(
+                PLambda(
+                    ["f", "i", "xs"],
+                    Ite(
+                        EqualsInteger(PVar("i"), Integer(0)),
+                        HeadList(PVar("xs")),
+                        Apply(
+                            PVar("f"),
+                            PVar("f"),
+                            SubtractInteger(PVar("i"), Integer(1)),
+                            TailList(PVar("xs")),
+                        ),
+                    ),
+                ),
+            ),
+            self.i,
+            self.l,
+        )
+
+
+@dataclass
 class Range(Pattern):
     limit: AST
     start: AST = field(default_factory=lambda: Integer(0))

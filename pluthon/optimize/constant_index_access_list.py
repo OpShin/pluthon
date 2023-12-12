@@ -2,7 +2,7 @@ from pluthon import IndexAccessList, Integer, ConstantIndexAccessList
 from pluthon.util import NodeTransformer
 
 
-class IndexAccessOptimizer(NodeTransformer):
+class ConstantIndexAccessOptimizer(NodeTransformer):
     """
     Replaces IndexAccesses to constants with ConstantIndexAccesses
     """
