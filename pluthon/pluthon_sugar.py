@@ -270,7 +270,7 @@ class EmptyList(AST):
             return f"Pair<{EmptyList(self.sample_value.l_value).mk_nil_suffix()}|{EmptyList(self.sample_value.r_value).mk_nil_suffix()}>"
         if isinstance(self.sample_value, uplc_ast.BuiltinList):
             return f"List{EmptyList(self.sample_value.sample_value).mk_nil_suffix()}"
-        return self.sample_value.__class__
+        return self.sample_value.__class__.__name__
 
     def dumps(self) -> str:
         # Note: this is not a real builtin. Essentially, this is not pluto
