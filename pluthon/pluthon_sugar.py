@@ -807,5 +807,39 @@ def _concat(append, empty):
     return f
 
 
+@dataclass
+class AppendList(Pattern):
+    xs: AST
+    ys: AST
+
+    def compose(self):
+        return Apply(
+            RecFun(
+                PLambda(
+                    ["append", "xs", "ys"],
+                    IteNullList(
+                        PVar("xs"),
+                        PVar("ys"),
+                        PrependList(
+                            HeadList(PVar("xs")),
+                            Apply(
+                                PVar("append"),
+                                PVar("append"),
+                                TailList(PVar("xs")),
+                                PVar("ys"),
+                            ),
+                        ),
+                    ),
+                )
+            ),
+            self.xs,
+            self.ys,
+        )
+
+
 ConcatString = _concat(AppendString, Text(""))
 ConcatByteString = _concat(AppendByteString, ByteString(b""))
+
+
+def ConcatList(sample_value: uplc_ast.Constant):
+    return _concat(AppendList, EmptyList(sample_value))
