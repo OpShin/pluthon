@@ -1,12 +1,14 @@
 from uplc.ast import Program as UPLCProgram
 
 from .optimize.constant_index_access_list import IndexAccessOptimizer
-from .optimize.patterns import OncePatternReplacer
+from .optimize.patterns import OncePatternReplacer, AllPatternReplacer
 from .pluthon_ast import Program, AST
 from .util import NoOp
 
 
-def compile(x: Program, optimize_patterns=True) -> UPLCProgram:
+def compile(
+    x: Program, optimize_patterns=True, iterative_unfold_patterns=False
+) -> UPLCProgram:
     """
     Returns compiles Pluto code in UPLC
     :param x: the program to compile
@@ -20,7 +22,13 @@ def compile(x: Program, optimize_patterns=True) -> UPLCProgram:
         x_old_dumps = x_new_dumps
         for step in [
             IndexAccessOptimizer(),
-            OncePatternReplacer() if optimize_patterns else NoOp(),
+            (
+                OncePatternReplacer()
+                if iterative_unfold_patterns
+                else AllPatternReplacer()
+            )
+            if optimize_patterns
+            else NoOp(),
         ]:
             x = step.visit(x)
         x_new_dumps = x.dumps()
