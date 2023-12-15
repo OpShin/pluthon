@@ -721,6 +721,92 @@ class LengthList(Pattern):
         )
 
 
+@dataclass
+class TakeList(Pattern):
+    """Take the first n elements of list l"""
+
+    l: AST
+    n: AST
+    empty_list: AST = field(default_factory=EmptyDataList)
+
+    def compose(self):
+        return Apply(
+            RecFun(
+                PLambda(
+                    ["take", "xs", "n"],
+                    IteNullList(
+                        PVar("xs"),
+                        self.empty_list,
+                        Ite(
+                            LessThanEqualsInteger(PVar("n"), Integer(0)),
+                            self.empty_list,
+                            PrependList(
+                                HeadList(PVar("xs")),
+                                Apply(
+                                    PVar("take"),
+                                    PVar("take"),
+                                    TailList(PVar("xs")),
+                                    SubtractInteger(PVar("n"), Integer(1)),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            self.l,
+            self.n,
+        )
+
+
+@dataclass
+class DropList(Pattern):
+    """Drop the first n elements of list l"""
+
+    l: AST
+    n: AST
+    empty_list: AST = field(default_factory=EmptyDataList)
+
+    def compose(self):
+        return Apply(
+            RecFun(
+                PLambda(
+                    ["drop", "xs", "n"],
+                    IteNullList(
+                        PVar("xs"),
+                        self.empty_list,
+                        Ite(
+                            LessThanEqualsInteger(PVar("n"), Integer(0)),
+                            PVar("xs"),
+                            Apply(
+                                PVar("drop"),
+                                PVar("drop"),
+                                TailList(PVar("xs")),
+                                SubtractInteger(PVar("n"), Integer(1)),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            self.l,
+            self.n,
+        )
+
+
+@dataclass
+class SliceList(Pattern):
+    """Drop the first i elements of list l and take the remaining j elements"""
+
+    i: AST
+    j: AST
+    l: AST
+    empty_list: AST = field(default_factory=EmptyDataList)
+
+    def compose(self):
+        return TakeList(
+            DropList(self.l, self.i, self.empty_list), self.j, self.empty_list
+        )
+
+
 # Data Utils
 
 
