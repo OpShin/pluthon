@@ -721,6 +721,77 @@ class LengthList(Pattern):
         )
 
 
+@dataclass
+class TakeList(Pattern):
+    """Take the first n elements of list l"""
+
+    l: AST
+    n: AST
+    empty_list: AST = field(default_factory=EmptyDataList)
+
+    def compose(self):
+        return Apply(
+            RecFun(
+                PLambda(
+                    ["take", "xs", "n"],
+                    IteNullList(
+                        PVar("xs"),
+                        self.empty_list,
+                        Ite(
+                            LessThanEqualsInteger(PVar("n"), Integer(0)),
+                            self.empty_list,
+                            PrependList(
+                                HeadList(PVar("xs")),
+                                Apply(
+                                    PVar("take"),
+                                    PVar("take"),
+                                    TailList(PVar("xs")),
+                                    SubtractInteger(PVar("n"), Integer(1)),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            self.l,
+            self.n,
+        )
+
+
+@dataclass
+class DropList(Pattern):
+    """Drop the first n elements of list l"""
+
+    l: AST
+    n: AST
+    empty_list: AST = field(default_factory=EmptyDataList)
+
+    def compose(self):
+        return Apply(
+            RecFun(
+                PLambda(
+                    ["drop", "xs", "n"],
+                    IteNullList(
+                        PVar("xs"),
+                        self.empty_list,
+                        Ite(
+                            LessThanEqualsInteger(PVar("n"), Integer(0)),
+                            PVar("xs"),
+                            Apply(
+                                PVar("drop"),
+                                PVar("drop"),
+                                TailList(PVar("xs")),
+                                SubtractInteger(PVar("n"), Integer(1)),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            self.l,
+            self.n,
+        )
+
+
 # Data Utils
 
 
