@@ -792,6 +792,21 @@ class DropList(Pattern):
         )
 
 
+@dataclass
+class SliceList(Pattern):
+    """Drop the first i elements of list l and take the remaining j elements"""
+
+    i: AST
+    j: AST
+    l: AST
+    empty_list: AST = field(default_factory=EmptyDataList)
+
+    def compose(self):
+        return TakeList(
+            DropList(self.l, self.i, self.empty_list), self.j, self.empty_list
+        )
+
+
 # Data Utils
 
 
