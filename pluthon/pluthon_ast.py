@@ -130,7 +130,7 @@ class Text(AST):
         return uplc_ast.BuiltinString(self.x)
 
     def dumps(self) -> str:
-        return f'"{self.x}"'
+        return repr(self.x)
 
 
 @dataclass
