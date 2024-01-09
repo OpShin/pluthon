@@ -14,7 +14,7 @@ except ImportError as e:
         exc_info=e,
     )
 
-VERSION = (0, 4, 5)
+VERSION = (0, 4, 6)
 
 __version__ = ".".join([str(i) for i in VERSION])
 __author__ = "nielstron"
