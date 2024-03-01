@@ -933,6 +933,10 @@ def ConstantNthField(d: AST, i: int):
     return ConstantIndexAccessList(Fields(d), i)
 
 
+def ConstantNthFieldFast(d: AST, i: int):
+    return ConstantIndexAccessListFast(Fields(d), i)
+
+
 @dataclass
 class NoneData(Pattern):
     def compose(self):
