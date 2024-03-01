@@ -420,6 +420,7 @@ class RFoldList(Pattern):
 
 
 _CONSTANT_INDEX_ACCESS_PATTERNS = {}
+_CONSTANT_INDEX_ACCESS_PATTERNS_FAST = {}
 
 
 def _NthConstantIndexAccessList(i: int):
@@ -476,6 +477,44 @@ def _NthConstantIndexAccessList(i: int):
 
 def ConstantIndexAccessList(l: AST, i: int):
     return _NthConstantIndexAccessList(i)(l)
+
+
+def _NthConstantIndexAccessListFast(i: int):
+    if i < 0:
+        raise ValueError("Index must be non-negative")
+    if _CONSTANT_INDEX_ACCESS_PATTERNS_FAST.get(i) is None:
+
+        def assign_vars(self, l: AST):
+            self.l = l
+
+        if i == 0:
+
+            def compose(self):
+                return HeadList(self.l)
+
+        else:
+
+            def compose(self):
+                return _NthConstantIndexAccessList(i - 1)(TailList(self.l))
+
+        ConstantIndexAccessListPatternFast = type(
+            f"ConstantIndexAccessListPatternFast_{i}",
+            (Pattern,),
+            {
+                "__annotations__": {"l": AST},
+                "__init__": assign_vars,
+                "compose": compose,
+            },
+        )
+        ConstantIndexAccessListPatternFast = dataclass(
+            ConstantIndexAccessListPatternFast
+        )
+        _CONSTANT_INDEX_ACCESS_PATTERNS_FAST[i] = ConstantIndexAccessListPatternFast
+    return _CONSTANT_INDEX_ACCESS_PATTERNS_FAST[i]
+
+
+def ConstantIndexAccessListFast(l: AST, i: int):
+    return _NthConstantIndexAccessListFast(i)(l)
 
 
 @dataclass
