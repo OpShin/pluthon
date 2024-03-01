@@ -495,7 +495,7 @@ def _NthConstantIndexAccessListFast(i: int):
         else:
 
             def compose(self):
-                return _NthConstantIndexAccessList(i - 1)(TailList(self.l))
+                return _NthConstantIndexAccessListFast(i - 1)(TailList(self.l))
 
         ConstantIndexAccessListPatternFast = type(
             f"ConstantIndexAccessListPatternFast_{i}",
