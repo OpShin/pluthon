@@ -12,9 +12,8 @@ def compile(
     config=DEFAULT_CONFIG,
 ) -> UPLCProgram:
     """
-    Returns compiles Pluto code in UPLC
+    Returns compiled Pluto code in UPLC
     :param x: the program to compile
-    :param optimize_patterns: whether to optimize patterns i.e. write them out and reuse by calling. This decreases the size of the compiled program but increases the execution time.
     """
     x_old_dumps = None
     x_new_dumps = x.dumps()
