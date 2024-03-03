@@ -40,15 +40,12 @@ DEFAULT_CONFIG = CompilationConfig().update(OPT_O1_CONFIG)
 
 ARGPARSE_ARGS = {
     "compress_patterns": {
-        "action": "store_true",
         "help": "Enables the compression of re-occurring code patterns. Can reduce memory and CPU steps but increases the size of the compiled contract.",
     },
     "iterative_unfold_patterns": {
-        "action": "store_true",
         "help": "Enables iterative unfolding of patterns. Improves application of pattern optimization but is very slow.",
     },
     "constant_index_access_list": {
-        "action": "store_true",
         "help": "Replace index accesses with constant parameters with optimized constant accesses. Can reduce memory and CPU steps but increases the size of the compiled contract.",
     },
 }
