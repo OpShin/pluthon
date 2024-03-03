@@ -8,6 +8,7 @@ try:
     from .pluthon_sugar import *
     from .pluthon_functional_data import *
     from .tools import *
+    from .compiler_config import *
 except ImportError as e:
     logging.error(
         "Error, trying to import dependencies. Should only occur upon package installation",

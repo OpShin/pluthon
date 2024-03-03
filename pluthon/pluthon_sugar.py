@@ -929,6 +929,15 @@ class NthField(Pattern):
         return IndexAccessList(Fields(self.d), self.n)
 
 
+@dataclass
+class NthFieldFast(Pattern):
+    d: AST
+    n: AST
+
+    def compose(self):
+        return IndexAccessListFast(Fields(self.d), self.n)
+
+
 def ConstantNthField(d: AST, i: int):
     return ConstantIndexAccessList(Fields(d), i)
 
