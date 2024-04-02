@@ -714,7 +714,6 @@ class AnyList(Pattern):
 
     l: AST
     key: AST
-    default: AST
 
     def compose(self):
         return Apply(
@@ -750,7 +749,6 @@ class AllList(Pattern):
 
     l: AST
     key: AST
-    default: AST
 
     def compose(self):
         return Apply(
