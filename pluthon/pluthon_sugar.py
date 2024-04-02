@@ -709,6 +709,78 @@ class FindList(Pattern):
 
 
 @dataclass
+class AnyList(Pattern):
+    """Returns whether the key evaluates to true anywhere in the list"""
+
+    l: AST
+    key: AST
+    default: AST
+
+    def compose(self):
+        return Apply(
+            PLambda(
+                ["op"],
+                RecFun(
+                    PLambda(
+                        ["f", "xs"],
+                        IteNullList(
+                            PVar("xs"),
+                            Bool(False),
+                            Ite(
+                                Apply(PVar("op"), HeadList(PVar("xs"))),
+                                Bool(True),
+                                Apply(
+                                    PVar("f"),
+                                    PVar("f"),
+                                    TailList(PVar("xs")),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            self.key,
+            self.l,
+        )
+
+
+@dataclass
+class AllList(Pattern):
+    """Returns whether the key evaluates to true everywhere in the list"""
+
+    l: AST
+    key: AST
+    default: AST
+
+    def compose(self):
+        return Apply(
+            PLambda(
+                ["op"],
+                RecFun(
+                    PLambda(
+                        ["f", "xs"],
+                        IteNullList(
+                            PVar("xs"),
+                            Bool(True),
+                            Ite(
+                                Apply(PVar("op"), HeadList(PVar("xs"))),
+                                Apply(
+                                    PVar("f"),
+                                    PVar("f"),
+                                    TailList(PVar("xs")),
+                                ),
+                                Bool(False),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            self.key,
+            self.l,
+        )
+
+
+@dataclass
 class FilterList(Pattern):
     """Apply a filter function on each element in a list (throws out all that evaluate to false)"""
 
