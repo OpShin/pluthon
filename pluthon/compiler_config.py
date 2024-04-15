@@ -16,7 +16,7 @@ class CompilationConfig:
         return self.__class__(
             **{
                 k: other_dict.get(k) if other_dict.get(k) is not None else own_dict[k]
-                for k in own_dict
+                for k in set(own_dict.keys()) | set(other_dict.keys())
             }
         )
 
