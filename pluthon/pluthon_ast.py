@@ -166,7 +166,7 @@ class UPLCConstant(AST):
         return self.x
 
     def dumps(self) -> str:
-        return f"uplc[{self.x.dumps(dialect=uplc_ast.UPLCDialect.Aiken)}]"
+        return f"uplc[{self.x.dumps(dialect=uplc_ast.UPLCDialect.LegacyAiken)}]"
 
 
 @dataclass

@@ -25,8 +25,8 @@ setup(
     py_modules=["uplc"],
     packages=find_packages(),
     install_requires=[
-        "uplc>=0.6.2",
-        "uplc<0.7.0",
+        "uplc>=1.0.4",
+        "uplc<1.1.0",
         'graphlib-backport>=1.0.0; python_version<"3.9"',
         "ordered-set>=4.1.0",
         "ordered-set<5.0.0",
