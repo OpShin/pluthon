@@ -12,11 +12,11 @@ jobs:
   fast_finish: true
 install:
 - pip install coverage coveralls
-- pip install ruff==0.7.0
+- pip install ruff==0.7.0 pytest
 - pip install -e .
 script:
 - ruff check
-- coverage run --source=pluthon setup.py test
+- coverage run --source=pluthon pytest
 after_success:
 - coverage report
 - coveralls
