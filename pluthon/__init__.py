@@ -4,11 +4,11 @@
 import logging
 
 try:
-    from .pluthon_ast import *
-    from .pluthon_sugar import *
-    from .pluthon_functional_data import *
-    from .tools import *
-    from .compiler_config import *
+    from .pluthon_ast import *  # noqa: F403
+    from .pluthon_sugar import *  # noqa: F403
+    from .pluthon_functional_data import *  # noqa: F403
+    from .tools import *  # noqa: F403
+    from .compiler_config import *  # noqa: F403
 except ImportError as e:
     logging.error(
         "Error, trying to import dependencies. Should only occur upon package installation",

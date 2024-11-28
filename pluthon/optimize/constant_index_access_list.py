@@ -6,7 +6,6 @@ from pluthon.pluthon_sugar import (
     ConstantNthField,
     IndexAccessListFast,
     ConstantIndexAccessListFast,
-    ConstantNthFieldFast,
 )
 from pluthon.util import NodeTransformer
 

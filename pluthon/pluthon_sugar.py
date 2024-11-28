@@ -1,7 +1,24 @@
-from functools import lru_cache
-
-from .pluthon_ast import *
-from dataclasses import field
+from .pluthon_ast import (
+    ByteString,
+    Integer,
+    Bool,
+    AST,
+    Apply,
+    Delay,
+    Ite,
+    Unit,
+    Force,
+    Pattern,
+    Lambda,
+    Var,
+    Let,
+    Text,
+    BuiltIn,
+    Error,
+)
+from uplc import ast as uplc_ast
+import typing
+from dataclasses import field, dataclass
 
 ########## Pluto Abstractions that simplify handling complex structures ####################
 
@@ -232,8 +249,13 @@ SerialiseData = wrap_builtin_unop(uplc_ast.BuiltInFun.SerialiseData)
 
 # Generic Utils
 
-TraceConst = lambda x, y: Trace(Text(x), y)
-TraceError = lambda x: Apply(Error(), Trace(Text(x), Unit()))
+
+def TraceConst(x: AST, y: AST):
+    return Trace(Text(x), y)
+
+
+def TraceError(x: AST):
+    return Apply(Error(), Trace(Text(x), Unit()))
 
 
 @dataclass
@@ -315,12 +337,12 @@ def EmptyDataPairList():
     return MkNilPairData(Unit())
 
 
-def IteNullList(l: AST, i: AST, e: AST):
+def IteNullList(lst: AST, i: AST, e: AST):
     """Ite based on whether a list is empty or not, choose over Ite(NullList(l), i, e) for performance reasons"""
     # Careful: can not patternize due to use of delay/force
     return Force(
         ChooseList(
-            l,
+            lst,
             Delay(i),
             Delay(e),
         )
@@ -351,7 +373,7 @@ class SingleDataPairList(Pattern):
 class FoldList(Pattern):
     """Left fold over a list l operator f: accumulator -> list_elem -> accumulator with initial value a"""
 
-    l: AST
+    lst: AST
     f: AST
     a: AST
 
@@ -376,7 +398,7 @@ class FoldList(Pattern):
                 ),
             ),
             self.f,
-            self.l,
+            self.lst,
             self.a,
         )
 
@@ -385,7 +407,7 @@ class FoldList(Pattern):
 class RFoldList(Pattern):
     """Right fold over a list l operator f: accumulator -> list_elem -> accumulator with initial value a"""
 
-    l: AST
+    lst: AST
     f: AST
     a: AST
 
@@ -414,7 +436,7 @@ class RFoldList(Pattern):
                 ),
             ),
             self.f,
-            self.l,
+            self.lst,
             self.a,
         )
 
@@ -428,8 +450,8 @@ def _NthConstantIndexAccessList(i: int):
         raise ValueError("Index must be non-negative")
     if _CONSTANT_INDEX_ACCESS_PATTERNS.get(i) is None:
 
-        def assign_vars(self, l: AST):
-            self.l = l
+        def assign_vars(self, lst: AST):
+            self.lst = lst
 
         if i == 0:
 
@@ -441,7 +463,7 @@ def _NthConstantIndexAccessList(i: int):
                             PVar("xs"), TraceError("IndexError"), HeadList(PVar("xs"))
                         ),
                     ),
-                    self.l,
+                    self.lst,
                 )
 
         else:
@@ -457,7 +479,7 @@ def _NthConstantIndexAccessList(i: int):
                                 TailList(PVar("xs")),
                             ),
                         ),
-                        self.l,
+                        self.lst,
                     )
                 )
 
@@ -465,7 +487,7 @@ def _NthConstantIndexAccessList(i: int):
             f"ConstantIndexAccessListPattern_{i}",
             (Pattern,),
             {
-                "__annotations__": {"l": AST},
+                "__annotations__": {"lst": AST},
                 "__init__": assign_vars,
                 "compose": compose,
             },
@@ -475,8 +497,8 @@ def _NthConstantIndexAccessList(i: int):
     return _CONSTANT_INDEX_ACCESS_PATTERNS[i]
 
 
-def ConstantIndexAccessList(l: AST, i: int):
-    return _NthConstantIndexAccessList(i)(l)
+def ConstantIndexAccessList(lst: AST, i: int):
+    return _NthConstantIndexAccessList(i)(lst)
 
 
 def _NthConstantIndexAccessListFast(i: int):
@@ -484,24 +506,24 @@ def _NthConstantIndexAccessListFast(i: int):
         raise ValueError("Index must be non-negative")
     if _CONSTANT_INDEX_ACCESS_PATTERNS_FAST.get(i) is None:
 
-        def assign_vars(self, l: AST):
-            self.l = l
+        def assign_vars(self, lst: AST):
+            self.lst = lst
 
         if i == 0:
 
             def compose(self):
-                return HeadList(self.l)
+                return HeadList(self.lst)
 
         else:
 
             def compose(self):
-                return _NthConstantIndexAccessListFast(i - 1)(TailList(self.l))
+                return _NthConstantIndexAccessListFast(i - 1)(TailList(self.lst))
 
         ConstantIndexAccessListPatternFast = type(
             f"ConstantIndexAccessListPatternFast_{i}",
             (Pattern,),
             {
-                "__annotations__": {"l": AST},
+                "__annotations__": {"lst": AST},
                 "__init__": assign_vars,
                 "compose": compose,
             },
@@ -513,13 +535,13 @@ def _NthConstantIndexAccessListFast(i: int):
     return _CONSTANT_INDEX_ACCESS_PATTERNS_FAST[i]
 
 
-def ConstantIndexAccessListFast(l: AST, i: int):
-    return _NthConstantIndexAccessListFast(i)(l)
+def ConstantIndexAccessListFast(lst: AST, i: int):
+    return _NthConstantIndexAccessListFast(i)(lst)
 
 
 @dataclass
 class IndexAccessList(Pattern):
-    l: AST
+    lst: AST
     i: AST
 
     def compose(self):
@@ -544,7 +566,7 @@ class IndexAccessList(Pattern):
                 ),
             ),
             self.i,
-            self.l,
+            self.lst,
         )
 
 
@@ -601,19 +623,19 @@ def IndexAccessListFast(step_size: int = 5):
                         ),
                     ),
                 ],
-                Apply(PVar("skip_access"), self.i, self.l),
+                Apply(PVar("skip_access"), self.i, self.lst),
             )
         )
 
-    def assign_vars(self, l: AST, i: AST):
-        self.l = l
+    def assign_vars(self, lst: AST, i: AST):
+        self.lst = lst
         self.i = i
 
     IndexAccessListFastType = type(
         f"IndexAccessListFastType_{step_size}",
         (Pattern,),
         {
-            "__annotations__": {"l": AST, "i": AST},
+            "__annotations__": {"lst": AST, "i": AST},
             "__init__": assign_vars,
             "compose": compose,
         },
@@ -661,7 +683,7 @@ class Range(Pattern):
 class MapList(Pattern):
     """Apply a map function on each element in a list"""
 
-    l: AST
+    lst: AST
     m: AST = field(default_factory=lambda: PLambda(["x"], PVar("x")))
     empty_list: AST = field(default_factory=EmptyDataList)
 
@@ -688,7 +710,7 @@ class MapList(Pattern):
                 ),
             ),
             self.m,
-            self.l,
+            self.lst,
         )
 
 
@@ -696,7 +718,7 @@ class MapList(Pattern):
 class FindList(Pattern):
     """Returns the first element in the list where key evaluates to true - otherwise returns default"""
 
-    l: AST
+    lst: AST
     key: AST
     default: AST
 
@@ -724,7 +746,7 @@ class FindList(Pattern):
                 ),
             ),
             self.key,
-            self.l,
+            self.lst,
         )
 
 
@@ -732,7 +754,7 @@ class FindList(Pattern):
 class AnyList(Pattern):
     """Returns whether the key evaluates to true anywhere in the list"""
 
-    l: AST
+    lst: AST
     key: AST
 
     def compose(self):
@@ -759,7 +781,7 @@ class AnyList(Pattern):
                 ),
             ),
             self.key,
-            self.l,
+            self.lst,
         )
 
 
@@ -767,7 +789,7 @@ class AnyList(Pattern):
 class AllList(Pattern):
     """Returns whether the key evaluates to true everywhere in the list"""
 
-    l: AST
+    lst: AST
     key: AST
 
     def compose(self):
@@ -794,7 +816,7 @@ class AllList(Pattern):
                 ),
             ),
             self.key,
-            self.l,
+            self.lst,
         )
 
 
@@ -802,7 +824,7 @@ class AllList(Pattern):
 class FilterList(Pattern):
     """Apply a filter function on each element in a list (throws out all that evaluate to false)"""
 
-    l: AST
+    lst: AST
     k: AST
     empty_list: AST = field(default_factory=EmptyDataList)
 
@@ -840,7 +862,7 @@ class FilterList(Pattern):
                 ),
             ),
             self.k,
-            self.l,
+            self.lst,
         )
 
 
@@ -851,7 +873,7 @@ class MapFilterList(Pattern):
     Performs only a single pass and is hence much more efficient than filter + map
     """
 
-    l: AST
+    lst: AST
     filter_op: AST
     map_op: AST
     empty_list: AST = field(default_factory=EmptyDataList)
@@ -891,17 +913,17 @@ class MapFilterList(Pattern):
             ),
             self.filter_op,
             self.map_op,
-            self.l,
+            self.lst,
         )
 
 
 @dataclass
 class LengthList(Pattern):
-    l: AST
+    lst: AST
 
     def compose(self):
         return FoldList(
-            self.l, PLambda(["a", "_"], AddInteger(PVar("a"), Integer(1))), Integer(0)
+            self.lst, PLambda(["a", "_"], AddInteger(PVar("a"), Integer(1))), Integer(0)
         )
 
 
@@ -909,7 +931,7 @@ class LengthList(Pattern):
 class TakeList(Pattern):
     """Take the first n elements of list l"""
 
-    l: AST
+    lst: AST
     n: AST
     empty_list: AST = field(default_factory=EmptyDataList)
 
@@ -937,7 +959,7 @@ class TakeList(Pattern):
                     ),
                 ),
             ),
-            self.l,
+            self.lst,
             self.n,
         )
 
@@ -946,7 +968,7 @@ class TakeList(Pattern):
 class DropList(Pattern):
     """Drop the first n elements of list l"""
 
-    l: AST
+    lst: AST
     n: AST
     empty_list: AST = field(default_factory=EmptyDataList)
 
@@ -971,7 +993,7 @@ class DropList(Pattern):
                     ),
                 ),
             ),
-            self.l,
+            self.lst,
             self.n,
         )
 
@@ -982,12 +1004,12 @@ class SliceList(Pattern):
 
     i: AST
     j: AST
-    l: AST
+    lst: AST
     empty_list: AST = field(default_factory=EmptyDataList)
 
     def compose(self):
         return TakeList(
-            DropList(self.l, self.i, self.empty_list), self.j, self.empty_list
+            DropList(self.lst, self.i, self.empty_list), self.j, self.empty_list
         )
 
 

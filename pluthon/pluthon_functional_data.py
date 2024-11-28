@@ -1,4 +1,24 @@
-from .pluthon_sugar import *
+from .pluthon_ast import (
+    ByteString,
+    Integer,
+    Bool,
+    AST,
+    Apply,
+    Delay,
+    Ite,
+    Unit,
+    Force,
+    Pattern,
+)
+from .pluthon_sugar import (
+    EqualsByteString,
+    EqualsInteger,
+    EqualsBool,
+    PVar,
+    PLambda,
+    TraceError,
+)
+from dataclasses import field, dataclass
 import typing
 
 """
@@ -6,7 +26,10 @@ Functional Data Structures that can store anything (as opposed to PlutusData der
 
 Built on wrapped lambda terms
 """
-identity = lambda x: x
+
+
+def identity(x):
+    return x
 
 
 _BUILTIN_TYPE_MAP = {

@@ -1,10 +1,8 @@
 from functools import lru_cache
-from hashlib import sha256
 
-from .pluthon_ast import Pattern, Let, AST
+from .pluthon_ast import Let, AST
 
-from copy import copy
-from dataclasses import fields, MISSING, dataclass
+from dataclasses import fields, MISSING
 
 
 @lru_cache()
