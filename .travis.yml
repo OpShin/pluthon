@@ -16,7 +16,7 @@ install:
 - pip install -e .
 script:
 - ruff check
-- coverage run --source=pluthon pytest
+- coverage run --source=pluthon -m pytest
 after_success:
 - coverage report
 - coveralls
