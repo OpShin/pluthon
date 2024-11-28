@@ -547,11 +547,18 @@ class IndexAccessList(Pattern):
             self.l,
         )
 
+def n_times_taillist(a: AST, n: int):
+    res = a
+    for _ in range(n):
+        res = TailList(res)
+    return res
+
 
 @dataclass
 class IndexAccessListFast(Pattern):
     l: AST
     i: AST
+    step_size: int = 5
 
     def compose(self):
         return Apply(
@@ -581,17 +588,13 @@ class IndexAccessListFast(Pattern):
                             PLambda(
                                 ["f", "i", "xs"],
                                 Ite(
-                                    LessThanInteger(PVar("i"), Integer(5)),
+                                    LessThanInteger(PVar("i"), Integer(self.step_size)),
                                     Apply(PVar("step_access"), PVar("i"), PVar("xs")),
                                     Apply(
                                         PVar("f"),
                                         PVar("f"),
-                                        SubtractInteger(PVar("i"), Integer(5)),
-                                        TailList(
-                                            TailList(
-                                                TailList(TailList(TailList(PVar("xs"))))
-                                            )
-                                        ),
+                                        SubtractInteger(PVar("i"), Integer(self.step_size)),
+                                        n_times_taillist(PVar("xs"), self.step_size),
                                     ),
                                 ),
                             )
