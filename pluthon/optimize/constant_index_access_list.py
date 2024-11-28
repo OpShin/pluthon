@@ -6,7 +6,6 @@ from pluthon.pluthon_sugar import (
     ConstantNthField,
     IndexAccessListFast,
     ConstantIndexAccessListFast,
-    NthFieldFast,
     ConstantNthFieldFast,
 )
 from pluthon.util import NodeTransformer
@@ -30,9 +29,4 @@ class IndexAccessOptimizer(NodeTransformer):
     def visit_IndexAccessListFast(self, node: IndexAccessListFast):
         if isinstance(node.i, Integer):
             return ConstantIndexAccessListFast(node.l, node.i.x)
-        return node
-
-    def visit_NthFieldFast(self, node: NthFieldFast):
-        if isinstance(node.n, Integer):
-            return ConstantNthFieldFast(node.d, node.n.x)
         return node

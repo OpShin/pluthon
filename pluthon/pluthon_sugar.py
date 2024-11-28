@@ -555,11 +555,10 @@ def n_times_taillist(a: AST, n: int):
     return res
 
 
-@dataclass
-class IndexAccessListFast(Pattern):
-    l: AST
-    i: AST
-    step_size: int = 5
+def IndexAccessListFast(step_size: int = 5):
+    """
+    Construct a pattern for step-size skip access
+    """
 
     def compose(self):
         return Apply(
@@ -589,15 +588,13 @@ class IndexAccessListFast(Pattern):
                             PLambda(
                                 ["f", "i", "xs"],
                                 Ite(
-                                    LessThanInteger(PVar("i"), Integer(self.step_size)),
+                                    LessThanInteger(PVar("i"), Integer(step_size)),
                                     Apply(PVar("step_access"), PVar("i"), PVar("xs")),
                                     Apply(
                                         PVar("f"),
                                         PVar("f"),
-                                        SubtractInteger(
-                                            PVar("i"), Integer(self.step_size)
-                                        ),
-                                        n_times_taillist(PVar("xs"), self.step_size),
+                                        SubtractInteger(PVar("i"), Integer(step_size)),
+                                        n_times_taillist(PVar("xs"), step_size),
                                     ),
                                 ),
                             )
@@ -607,6 +604,23 @@ class IndexAccessListFast(Pattern):
                 Apply(PVar("skip_access"), self.i, self.l),
             )
         )
+
+    def assign_vars(self, l: AST, i: AST):
+        self.l = l
+        self.i = i
+
+    IndexAccessListFastType = type(
+        f"IndexAccessListFastType_{step_size}",
+        (Pattern,),
+        {
+            "__annotations__": {"l": AST, "i": AST},
+            "__init__": assign_vars,
+            "compose": compose,
+        },
+    )
+    IndexAccessListFastType = dataclass(IndexAccessListFastType)
+
+    return IndexAccessListFastType
 
 
 @dataclass
@@ -1003,15 +1017,6 @@ class NthField(Pattern):
 
     def compose(self):
         return IndexAccessList(Fields(self.d), self.n)
-
-
-@dataclass
-class NthFieldFast(Pattern):
-    d: AST
-    n: AST
-
-    def compose(self):
-        return IndexAccessListFast(Fields(self.d), self.n)
 
 
 def ConstantNthField(d: AST, i: int):
