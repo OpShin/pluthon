@@ -24,12 +24,14 @@ def compile(
         for step in [
             IndexAccessOptimizer() if config.constant_index_access_list else NoOp(),
             (
-                OncePatternReplacer()
-                if config.iterative_unfold_patterns
-                else AllPatternReplacer()
-            )
-            if config.compress_patterns
-            else NoOp(),
+                (
+                    OncePatternReplacer()
+                    if config.iterative_unfold_patterns
+                    else AllPatternReplacer()
+                )
+                if config.compress_patterns
+                else NoOp()
+            ),
         ]:
             x = step.visit(x)
         x_new_dumps = x.dumps()

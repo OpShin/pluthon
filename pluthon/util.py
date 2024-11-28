@@ -22,11 +22,15 @@ def iter_fields(node: AST):
             getattr(
                 node,
                 field.name,
-                field.default
-                if field.default is not MISSING
-                else field.default_factory()
-                if field.default_factory is not MISSING
-                else None,
+                (
+                    field.default
+                    if field.default is not MISSING
+                    else (
+                        field.default_factory()
+                        if field.default_factory is not MISSING
+                        else None
+                    )
+                ),
             ),
         )
         for field in cached_fields(type(node))

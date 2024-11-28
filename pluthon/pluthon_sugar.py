@@ -547,6 +547,7 @@ class IndexAccessList(Pattern):
             self.l,
         )
 
+
 def n_times_taillist(a: AST, n: int):
     res = a
     for _ in range(n):
@@ -593,7 +594,9 @@ class IndexAccessListFast(Pattern):
                                     Apply(
                                         PVar("f"),
                                         PVar("f"),
-                                        SubtractInteger(PVar("i"), Integer(self.step_size)),
+                                        SubtractInteger(
+                                            PVar("i"), Integer(self.step_size)
+                                        ),
                                         n_times_taillist(PVar("xs"), self.step_size),
                                     ),
                                 ),
