@@ -27,7 +27,6 @@ setup(
     install_requires=[
         "uplc>=1.0.0",
         "uplc<1.1.0",
-        'graphlib-backport>=1.0.0; python_version<"3.9"',
         "ordered-set>=4.1.0",
         "ordered-set<5.0.0",
     ],
@@ -43,10 +42,11 @@ setup(
         "License :: OSI Approved :: MIT License",
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
     keywords="python cardano smart contract blockchain verification haskell",
     python_requires=">=3",
