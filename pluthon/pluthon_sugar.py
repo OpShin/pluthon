@@ -254,7 +254,7 @@ def TraceConst(x: AST, y: AST):
     return Trace(Text(x), y)
 
 
-def TraceError(x: AST):
+def TraceError(x: str):
     return Apply(Error(), Trace(Text(x), Unit()))
 
 
