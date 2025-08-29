@@ -26,9 +26,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "uplc>=1.0.0",
-        "uplc<1.1.0",
         "ordered-set>=4.1.0",
-        "ordered-set<5.0.0",
     ],
     long_description=long_description,
     long_description_content_type="text/markdown",
