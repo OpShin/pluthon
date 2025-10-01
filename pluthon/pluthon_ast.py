@@ -216,6 +216,11 @@ class Let(AST):
 
 @dataclass
 class Ite(AST):
+    """
+    If-then-else expression
+    Executes t when i evaluates to true, otherwise e
+    """
+
     i: AST
     t: AST
     e: AST

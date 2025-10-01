@@ -338,7 +338,10 @@ def EmptyDataPairList():
 
 
 def IteNullList(lst: AST, i: AST, e: AST):
-    """Ite based on whether a list is empty or not, choose over Ite(NullList(l), i, e) for performance reasons"""
+    """
+    Ite based on whether a list is empty or not, choose over Ite(NullList(l), i, e) for performance reasons
+    Executes i if lst is empty, e otherwise
+    """
     # Careful: can not patternize due to use of delay/force
     return Force(
         ChooseList(
@@ -398,6 +401,46 @@ class FoldList(Pattern):
                 ),
             ),
             self.f,
+            self.lst,
+            self.a,
+        )
+
+
+@dataclass
+class FoldListAbort(Pattern):
+    """Left fold over a list l operator f: accumulator -> list_elem -> accumulator with initial value a. Aborts on predicate p(a) returning true"""
+
+    lst: AST
+    f: AST
+    a: AST
+    p: AST
+
+    def compose(self):
+        return Apply(
+            PLambda(
+                ["op", "pred"],
+                RecFun(
+                    PLambda(
+                        ["fold", "xs", "a"],
+                        Ite(
+                            Apply(PVar("pred"), PVar("a")),
+                            PVar("a"),
+                            IteNullList(
+                                PVar("xs"),
+                                PVar("a"),
+                                Apply(
+                                    PVar("fold"),
+                                    PVar("fold"),
+                                    TailList(PVar("xs")),
+                                    Apply(PVar("op"), PVar("a"), HeadList(PVar("xs"))),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            self.f,
+            self.p,
             self.lst,
             self.a,
         )
