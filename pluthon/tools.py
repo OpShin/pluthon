@@ -3,6 +3,7 @@ from uplc.ast import Program as UPLCProgram
 from .compiler_config import DEFAULT_CONFIG
 from .optimize.constant_index_access_list import IndexAccessOptimizer
 from .optimize.patterns import OncePatternReplacer, AllPatternReplacer
+from .optimize.remove_trace import RemoveTrace
 from .pluthon_ast import Program, AST
 from .util import NoOp
 
@@ -32,6 +33,7 @@ def compile(
                 if config.compress_patterns
                 else NoOp()
             ),
+            RemoveTrace() if config.remove_trace else NoOp(),
         ]:
             x = step.visit(x)
         x_new_dumps = x.dumps()

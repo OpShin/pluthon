@@ -7,6 +7,7 @@ class CompilationConfig:
     compress_patterns: Optional[bool] = None
     iterative_unfold_patterns: Optional[bool] = None
     constant_index_access_list: Optional[bool] = None
+    remove_trace: Optional[bool] = None
 
     def update(
         self, other: Optional["CompilationConfig"] = None, **kwargs
@@ -33,6 +34,7 @@ OPT_O1_CONFIG = OPT_O0_CONFIG.update(
 OPT_O2_CONFIG = OPT_O1_CONFIG.update()
 OPT_O3_CONFIG = OPT_O2_CONFIG.update(
     iterative_unfold_patterns=True,
+    remove_trace=True,
 )
 OPT_CONFIGS = [OPT_O0_CONFIG, OPT_O1_CONFIG, OPT_O2_CONFIG, OPT_O3_CONFIG]
 
@@ -47,6 +49,9 @@ ARGPARSE_ARGS = {
     },
     "constant_index_access_list": {
         "help": "Replace index accesses with constant parameters with optimized constant accesses. Can reduce memory and CPU steps but increases the size of the compiled contract.",
+    },
+    "remove_trace": {
+        "help": "Removes trace calls from the compiled code. This will make debugging harder but reduces contract size.",
     },
 }
 for k in ARGPARSE_ARGS:
