@@ -6,6 +6,7 @@ from .optimize.patterns import OncePatternReplacer, AllPatternReplacer
 from .optimize.remove_trace import RemoveTrace
 from .pluthon_ast import Program, AST
 from .util import NoOp
+from uplc.tools import compile as uplc_compile
 
 
 def compile(
@@ -38,6 +39,10 @@ def compile(
             x = step.visit(x)
         x_new_dumps = x.dumps()
     x = x.compile()
+    x = uplc_compile(
+        x,
+        config=config,
+    )
     return x
 
 

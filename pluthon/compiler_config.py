@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
+from uplc import compiler_config as uplc_compiler_config
 
 
 @dataclass(frozen=True)
-class CompilationConfig:
+class CompilationConfig(uplc_compiler_config.CompilationConfig):
     compress_patterns: Optional[bool] = None
     iterative_unfold_patterns: Optional[bool] = None
     constant_index_access_list: Optional[bool] = None
@@ -23,18 +24,38 @@ class CompilationConfig:
 
 
 # The default configuration for the compiler
-OPT_O0_CONFIG = CompilationConfig(
-    compress_patterns=False,
-    iterative_unfold_patterns=False,
+OPT_O0_CONFIG = (
+    CompilationConfig()
+    .update(uplc_compiler_config.OPT_O0_CONFIG)
+    .update(
+        compress_patterns=False,
+        iterative_unfold_patterns=False,
+    )
 )
-OPT_O1_CONFIG = OPT_O0_CONFIG.update(
-    compress_patterns=True,
-    constant_index_access_list=True,
+OPT_O1_CONFIG = (
+    CompilationConfig()
+    .update(uplc_compiler_config.OPT_O1_CONFIG)
+    .update(OPT_O0_CONFIG)
+    .update(
+        compress_patterns=True,
+        constant_index_access_list=True,
+    )
 )
-OPT_O2_CONFIG = OPT_O1_CONFIG.update()
-OPT_O3_CONFIG = OPT_O2_CONFIG.update(
-    iterative_unfold_patterns=True,
-    remove_trace=True,
+OPT_O2_CONFIG = (
+    CompilationConfig()
+    .update(uplc_compiler_config.OPT_O2_CONFIG)
+    .update(OPT_O1_CONFIG)
+    .update()
+)
+OPT_O3_CONFIG = (
+    CompilationConfig()
+    .update(uplc_compiler_config.OPT_O3_CONFIG)
+    .update(OPT_O2_CONFIG)
+    .update(
+        unique_variable_names=True,
+        iterative_unfold_patterns=True,
+        remove_trace=True,
+    )
 )
 OPT_CONFIGS = [OPT_O0_CONFIG, OPT_O1_CONFIG, OPT_O2_CONFIG, OPT_O3_CONFIG]
 
