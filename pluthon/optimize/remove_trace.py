@@ -17,5 +17,5 @@ class RemoveTrace(NodeTransformer):
             # otherwise there might be side effects we are removing
             and isinstance(node.xs[0], Text)
         ):
-            return node.xs[1]
+            return self.generic_visit(node.xs[1])
         return self.generic_visit(node)
