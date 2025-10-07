@@ -61,20 +61,23 @@ OPT_CONFIGS = [OPT_O0_CONFIG, OPT_O1_CONFIG, OPT_O2_CONFIG, OPT_O3_CONFIG]
 
 DEFAULT_CONFIG = CompilationConfig().update(OPT_O1_CONFIG)
 
-ARGPARSE_ARGS = {
-    "compress_patterns": {
-        "help": "Enables the compression of re-occurring code patterns. Can reduce memory and CPU steps but increases the size of the compiled contract.",
-    },
-    "iterative_unfold_patterns": {
-        "help": "Enables iterative unfolding of patterns. Improves application of pattern optimization but is very slow.",
-    },
-    "constant_index_access_list": {
-        "help": "Replace index accesses with constant parameters with optimized constant accesses. Can reduce memory and CPU steps but increases the size of the compiled contract.",
-    },
-    "remove_trace": {
-        "help": "Removes trace calls from the compiled code. This will make debugging harder but reduces contract size.",
-    },
-}
+ARGPARSE_ARGS = uplc_compiler_config.ARGPARSE_ARGS.copy()
+ARGPARSE_ARGS.update(
+    {
+        "compress_patterns": {
+            "help": "Enables the compression of re-occurring code patterns. Can reduce memory and CPU steps but increases the size of the compiled contract.",
+        },
+        "iterative_unfold_patterns": {
+            "help": "Enables iterative unfolding of patterns. Improves application of pattern optimization but is very slow.",
+        },
+        "constant_index_access_list": {
+            "help": "Replace index accesses with constant parameters with optimized constant accesses. Can reduce memory and CPU steps but increases the size of the compiled contract.",
+        },
+        "remove_trace": {
+            "help": "Removes trace calls from the compiled code. This will make debugging harder but reduces contract size.",
+        },
+    }
+)
 for k in ARGPARSE_ARGS:
     assert (
         k in DEFAULT_CONFIG.__dict__
