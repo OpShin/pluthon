@@ -246,6 +246,45 @@ MkPairData = wrap_builtin_binop(uplc_ast.BuiltInFun.MkPairData)
 MkNilData = wrap_builtin_unop(uplc_ast.BuiltInFun.MkNilData)
 MkNilPairData = wrap_builtin_unop(uplc_ast.BuiltInFun.MkNilPairData)
 SerialiseData = wrap_builtin_unop(uplc_ast.BuiltInFun.SerialiseData)
+Keccak_256 = wrap_builtin_unop(uplc_ast.BuiltInFun.Keccak_256)
+Blake2b_224 = wrap_builtin_unop(uplc_ast.BuiltInFun.Blake2b_224)
+IntegerToByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.IntegerToByteString)
+ByteStringToInteger = wrap_builtin_unop(uplc_ast.BuiltInFun.ByteStringToInteger)
+AndByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.AndByteString)
+OrByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.OrByteString)
+XorByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.XorByteString)
+ComplementByteString = wrap_builtin_unop(uplc_ast.BuiltInFun.ComplementByteString)
+ShiftByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.ShiftByteString)
+RotateByteString = wrap_builtin_binop(uplc_ast.BuiltInFun.RotateByteString)
+CountSetBits = wrap_builtin_unop(uplc_ast.BuiltInFun.CountSetBits)
+FindFirstSetBit = wrap_builtin_unop(uplc_ast.BuiltInFun.FindFirstSetBit)
+ReadBit = wrap_builtin_binop(uplc_ast.BuiltInFun.ReadBit)
+WriteBits = wrap_builtin_ternop(uplc_ast.BuiltInFun.WriteBits)
+ReplicateByte = wrap_builtin_binop(uplc_ast.BuiltInFun.ReplicateByte)
+Ripemd_160 = wrap_builtin_unop(uplc_ast.BuiltInFun.Ripemd_160)
+Bls12_381_G1_Uncompress = wrap_builtin_unop(uplc_ast.BuiltInFun.Bls12_381_G1_Uncompress)
+Bls12_381_G1_Compress = wrap_builtin_unop(uplc_ast.BuiltInFun.Bls12_381_G1_Compress)
+Bls12_381_G1_Add = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_G1_Add)
+Bls12_381_G1_Neg = wrap_builtin_unop(uplc_ast.BuiltInFun.Bls12_381_G1_Neg)
+Bls12_381_G1_ScalarMul = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_G1_ScalarMul)
+Bls12_381_G1_HashToGroup = wrap_builtin_binop(
+    uplc_ast.BuiltInFun.Bls12_381_G1_HashToGroup
+)
+Bls12_381_G1_Equal = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_G1_Equal)
+Bls12_381_G2_Uncompress = wrap_builtin_unop(uplc_ast.BuiltInFun.Bls12_381_G2_Uncompress)
+Bls12_381_G2_Compress = wrap_builtin_unop(uplc_ast.BuiltInFun.Bls12_381_G2_Compress)
+Bls12_381_G2_Add = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_G2_Add)
+Bls12_381_G2_Neg = wrap_builtin_unop(uplc_ast.BuiltInFun.Bls12_381_G2_Neg)
+Bls12_381_G2_ScalarMul = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_G2_ScalarMul)
+Bls12_381_G2_HashToGroup = wrap_builtin_binop(
+    uplc_ast.BuiltInFun.Bls12_381_G2_HashToGroup
+)
+Bls12_381_G2_Equal = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_G2_Equal)
+Bls12_381_MillerLoop = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_MillerLoop)
+Bls12_381_MulMlResult = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_MulMlResult)
+Bls12_381_FinalVerify = wrap_builtin_ternop(uplc_ast.BuiltInFun.Bls12_381_FinalVerify)
+
+NotByteString = ComplementByteString
 
 # Generic Utils
 

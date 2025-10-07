@@ -25,7 +25,7 @@ setup(
     py_modules=["uplc"],
     packages=find_packages(),
     install_requires=[
-        "uplc>=1.0.0",
+        "uplc>=1.2.0",
         "ordered-set>=4.1.0",
     ],
     long_description=long_description,
