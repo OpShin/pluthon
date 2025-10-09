@@ -34,8 +34,8 @@ OPT_O0_CONFIG = (
 )
 OPT_O1_CONFIG = (
     CompilationConfig()
-    .update(uplc_compiler_config.OPT_O1_CONFIG)
     .update(OPT_O0_CONFIG)
+    .update(uplc_compiler_config.OPT_O1_CONFIG)
     .update(
         compress_patterns=True,
         constant_index_access_list=True,
@@ -43,14 +43,14 @@ OPT_O1_CONFIG = (
 )
 OPT_O2_CONFIG = (
     CompilationConfig()
-    .update(uplc_compiler_config.OPT_O2_CONFIG)
     .update(OPT_O1_CONFIG)
+    .update(uplc_compiler_config.OPT_O2_CONFIG)
     .update()
 )
 OPT_O3_CONFIG = (
     CompilationConfig()
-    .update(uplc_compiler_config.OPT_O3_CONFIG)
     .update(OPT_O2_CONFIG)
+    .update(uplc_compiler_config.OPT_O3_CONFIG)
     .update(
         unique_variable_names=True,
         iterative_unfold_patterns=True,
