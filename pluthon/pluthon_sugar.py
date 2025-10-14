@@ -282,9 +282,7 @@ Bls12_381_G2_HashToGroup = wrap_builtin_binop(
 Bls12_381_G2_Equal = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_G2_Equal)
 Bls12_381_MillerLoop = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_MillerLoop)
 Bls12_381_MulMlResult = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_MulMlResult)
-Bls12_381_FinalVerify = wrap_builtin_ternop(uplc_ast.BuiltInFun.Bls12_381_FinalVerify)
-
-NotByteString = ComplementByteString
+Bls12_381_FinalVerify = wrap_builtin_binop(uplc_ast.BuiltInFun.Bls12_381_FinalVerify)
 
 # Generic Utils
 
